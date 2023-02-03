@@ -6,14 +6,38 @@
 
     <display-name>spring-web-simplification</display-name>
 
+
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.properties</param-value>
+    </context-param>
+    <context-param>
+        <param-name>contextClass</param-name>
+        <param-value>com.kewen.spring.web.context.XmlWebApplicationContext</param-value>
+    </context-param>
+    <context-param>
+        <param-name>contextInitializerClasses</param-name>
+        <param-value>com.kewen.spring.web.context.WebApplicationContextInitializer</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>com.kewen.spring.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+
+
     <servlet>
         <servlet-name>web-servlet</servlet-name>
-        <servlet-class>com.kewen.spring.servlet.SpringServlet</servlet-class>
+        <servlet-class>com.kewen.spring.core.servlet.SpringServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>web-servlet</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
+
+
+
 
     <welcome-file-list>
         <welcome-file>index1.jsp</welcome-file>

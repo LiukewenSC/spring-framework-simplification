@@ -1,4 +1,4 @@
-package com.kewen.spring.servlet;
+package com.kewen.spring.core.servlet;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;

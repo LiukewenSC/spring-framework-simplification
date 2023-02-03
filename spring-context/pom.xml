@@ -11,5 +11,15 @@
 
     <artifactId>spring-context</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.kewen.spring</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.kewen.spring</groupId>
+            <artifactId>spring-core</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>
