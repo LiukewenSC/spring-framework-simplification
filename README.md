@@ -15,7 +15,8 @@ spring-framework系列的理解拆分，目的用于学习spring系列，总体�
 
 #### 使用说明
 
-1.  xxxx
+1.  web 入口
+    web的入口为 webapp/Web-INF/web.xml中，通过配置<listener>标签启动Spring容器
 2.  xxxx
 3.  xxxx
 

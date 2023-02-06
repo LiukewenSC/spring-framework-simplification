@@ -1,12 +1,18 @@
 package com.kewen.spring.web.context;
 
 import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
+import com.kewen.spring.beans.factory.DefaultListableBeanFactory;
+import com.kewen.spring.beans.factory.xml.XmlBeanDefinitionReader;
 import com.kewen.spring.context.ApplicationContext;
 import com.kewen.spring.core.ConfigurableEnvironment;
+import com.kewen.spring.core.io.ClassPathResource;
+import com.kewen.spring.core.io.Resource;
+import com.kewen.spring.core.io.ResourceLoader;
 
 import javax.servlet.ServletContext;
+import java.io.IOException;
 
-public class XmlWebApplicationContext implements WebApplicationContext {
+public class XmlWebApplicationContext implements WebApplicationContext, ResourceLoader {
 
     private final Object startupShutdownMonitor = new Object();
 
@@ -15,9 +21,15 @@ public class XmlWebApplicationContext implements WebApplicationContext {
     private ServletContext servletContext;
 
     private String configLocation;
+    private String[] configLocations;
 
     private ApplicationContext parent;
+    private ConfigurableEnvironment environment;
 
+    /**
+     * 在BeanDefinitionReader中解析配置文件路径需要用到
+     */
+    private ClassLoader classLoader;
     @Override
     public ServletContext getServletContext() {
         return servletContext;
@@ -30,17 +42,28 @@ public class XmlWebApplicationContext implements WebApplicationContext {
 
     @Override
     public void setConfigLocation(String configLocation) {
-        this.configLocation=configLocation;
+        //this.configLocation=configLocation;
+        if (configLocation !=null){
+            setConfigLocations(configLocation.split(","));
+        }
+    }
+
+    public void setConfigLocations(String[] locations) {
+        this.configLocations = locations;
+    }
+
+    public String[] getConfigLocations() {
+        return configLocations;
     }
 
     @Override
     public void setEnvironment(ConfigurableEnvironment environment) {
-
+        this.environment=environment;
     }
 
     @Override
     public ConfigurableEnvironment getEnvironment() {
-        return null;
+        return environment;
     }
 
     @Override
@@ -53,25 +76,30 @@ public class XmlWebApplicationContext implements WebApplicationContext {
 
         synchronized (startupShutdownMonitor) {
 
-            prepareRefresh();
+            try {
+                prepareRefresh();
 
-            ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+                ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
 
-            prepareBeanFactory(beanFactory);
+                prepareBeanFactory(beanFactory);
 
-            postProcessBeanFactory(beanFactory);
+                postProcessBeanFactory(beanFactory);
 
-            invokeBeanFactoryPostProcessors(beanFactory);
+                invokeBeanFactoryPostProcessors(beanFactory);
 
-            registerBeanPostProcessors(beanFactory);
+                registerBeanPostProcessors(beanFactory);
 
-            onRefresh();
+                onRefresh();
 
-            registerListeners();
+                registerListeners();
 
-            finishBeanFactoryInitialization(beanFactory);
+                finishBeanFactoryInitialization(beanFactory);
 
-            finishRefresh();
+                finishRefresh();
+            } catch (Throwable e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -115,8 +143,52 @@ public class XmlWebApplicationContext implements WebApplicationContext {
     }
 
     private ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+        refreshBeanFactory();
+        return getBeanFactory();
+    }
+
+    private void refreshBeanFactory() {
+        DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory(parent);
+        try {
+            loadBeanDefinitions(beanFactory);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    /**
+     * 加载BeanDefinition，这个很重要
+     * @param beanFactory
+     */
+    private void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws IOException {
+        XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
+
+        beanDefinitionReader.setEnvironment(getEnvironment());
+        beanDefinitionReader.setResourceLoader(this);
+
+
+        initBeanDefinitionReader(beanDefinitionReader);
+
+        loadBeanDefinitions(beanDefinitionReader);
+    }
+    protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws IOException {
+        String[] configLocations = getConfigLocations();
+        if (configLocations != null) {
+            for (String configLocation : configLocations) {
+                reader.loadBeanDefinitions(configLocation);
+            }
+        }
+    }
+
+    private void initBeanDefinitionReader(XmlBeanDefinitionReader beanDefinitionReader) {
+        // 原来的框架中就什么也没有，可以作为一个扩展点
+    }
+
+    private ConfigurableListableBeanFactory getBeanFactory() {
         return null;
     }
+
 
     private void prepareRefresh() {
 
@@ -152,5 +224,11 @@ public class XmlWebApplicationContext implements WebApplicationContext {
     @Override
     public boolean containsBean(String beanName) {
         return false;
+    }
+
+
+    @Override
+    public Resource getResource(String location) {
+        return new ClassPathResource(location,classLoader);
     }
 }

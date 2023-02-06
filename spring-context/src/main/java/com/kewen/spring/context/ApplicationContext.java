@@ -1,10 +1,11 @@
 package com.kewen.spring.context;
 
 import com.kewen.spring.beans.factory.BeanFactory;
+import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
 import com.kewen.spring.core.ConfigurableEnvironment;
 import com.kewen.spring.core.lang.Nullable;
 
-public interface ApplicationContext extends BeanFactory {
+public interface ApplicationContext extends ConfigurableListableBeanFactory {
 
     String getApplicationName();
 

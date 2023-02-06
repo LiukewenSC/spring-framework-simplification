@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+
+    <bean class="com.kewen.configular.one.controller.HelloController" id="helloController">
+        <property name="helloService" ref="helloService"/>
+    </bean>
+    <bean class="com.kewen.service.HelloService" id="helloService" autowire="byType"/>
+
+</beans>
