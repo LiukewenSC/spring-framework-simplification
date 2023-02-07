@@ -48,7 +48,7 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
 
         int load = loadBeanDefinitions(resource);
 
-        return 0;
+        return load;
     }
 
     @Override
@@ -66,12 +66,9 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         DefaultBeanDefinitionDocumentReader reader = new DefaultBeanDefinitionDocumentReader();
         //注册解析内容到BeanDefinitionRegistry中  此处精简了非常多的内容，逻辑整体为 将解析的xml注册到BeanDefinitionRegistry中，
 
-        reader.registerBeanDefinitions(objects,beanDefinitionRegistry);
+        int registerCount = reader.registerBeanDefinitions(objects, beanDefinitionRegistry);
 
-        return 0;
-    }
-    public BeanDefinitionDocumentReader createBeanDefinitionDocumentReader(){
-
+        return registerCount;
     }
 
     public BeanDefinitionRegistry getBeanDefinitionRegistry() {

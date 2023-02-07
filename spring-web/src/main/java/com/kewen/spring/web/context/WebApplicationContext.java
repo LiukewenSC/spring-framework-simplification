@@ -20,10 +20,6 @@ public interface WebApplicationContext extends ApplicationContext {
     @Nullable
     ServletContext getServletContext();
 
-    void setServletContext(ServletContext servletContext);
 
-
-
-    void refresh();
 
 }

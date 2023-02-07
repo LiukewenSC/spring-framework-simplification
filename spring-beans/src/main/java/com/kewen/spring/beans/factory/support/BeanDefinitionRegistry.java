@@ -10,4 +10,7 @@ import com.kewen.spring.beans.factory.config.BeanDefinition;
 public interface BeanDefinitionRegistry {
     void registerBeanDefinition(String beanName, BeanDefinition beanDefinition);
     void registerAlias(String beanName,String[] alias);
+
+    int getBeanDefinitionCount();
+
 }

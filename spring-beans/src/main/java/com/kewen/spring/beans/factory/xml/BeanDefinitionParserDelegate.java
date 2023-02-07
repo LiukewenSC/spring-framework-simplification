@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- * @descrpition xml解析器
  * @author kewen
+ * @descrpition xml解析器
  * @since 2023-02-06 16:36
  */
 public class BeanDefinitionParserDelegate {
@@ -149,39 +149,43 @@ public class BeanDefinitionParserDelegate {
     public static final String DEFAULT_DESTROY_METHOD_ATTRIBUTE = "default-destroy-method";
 
     @Nullable
-    public BeanDefinitionHolder parseBeanDefinitionElement(Map<String,Object> beanMap) {
+    public BeanDefinitionHolder parseBeanDefinitionElement(Map<String, Object> beanMap) {
         //
-        String beanClass = (String)beanMap.get("class");
-        String id = (String)beanMap.get("id");
+        String beanClass = (String) beanMap.get("class");
+        String id = (String) beanMap.get("id");
         String beanName;
-        if (id==null || id.trim().equals("")){
+        if (id == null || id.trim().equals("")) {
             beanName = beanClass;
         } else {
             beanName = id;
         }
 
-        String parentName = (String)beanMap.get("parent");
-        BeanDefinition beanDefinition = createBeanDefinition(beanName, parentName);
-        //todo 设置属性
-
-        String nameAttr = (String)beanMap.get("name");
-        String[] aliases ;
-        if (nameAttr !=null && nameAttr.trim().equals("")){
-            aliases=nameAttr.split(",");
+        BeanDefinition beanDefinition = createBeanDefinition(beanName, beanMap);
+        String nameAttr = (String) beanMap.get("name");
+        String[] aliases;
+        if (nameAttr != null && nameAttr.trim().equals("")) {
+            aliases = nameAttr.split(",");
         } else {
-            aliases=null;
+            aliases = null;
         }
-        return new BeanDefinitionHolder(beanDefinition,beanName,aliases);
+        return new BeanDefinitionHolder(beanDefinition, beanName, aliases);
 
     }
-    private BeanDefinition createBeanDefinition(@Nullable String className, @Nullable String parentName){
-        GenericBeanDefinition definition = new GenericBeanDefinition();
-        try {
-            definition.setBeanClass(ClassUtils.forName(className));
-        } catch (ClassNotFoundException e) {
-            throw new BeansException("createBeanDefinition exception ClassNotFound",e);
-        }
+
+    private BeanDefinition createBeanDefinition(@Nullable String beanName, Map<String, Object> beanMap) {
+        BeanDefinition definition = new GenericBeanDefinition();
+        String className = (String)beanMap.get("class");
+        definition.setBeanClassName(className);
+        String parentName = (String) beanMap.get("parent");
         definition.setParentName(parentName);
+        Boolean primary = (Boolean) beanMap.get("primary");
+        if (primary !=null){
+            definition.setPrimary(primary);
+        }
+        String scope = (String) beanMap.get("scope");
+        definition.setScope(scope);
+        //还有一部分先暂时不管
+
         return definition;
     }
 

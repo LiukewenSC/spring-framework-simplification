@@ -21,8 +21,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
     BeanDefinitionParserDelegate delegate;
 
     @Override
-    public void registerBeanDefinitions(JSONArray objects, BeanDefinitionRegistry registry) {
+    public int registerBeanDefinitions(JSONArray objects, BeanDefinitionRegistry registry) {
 
+        int beforeCount = registry.getBeanDefinitionCount();
 
         BeanDefinitionParserDelegate parent = this.delegate;
 
@@ -36,6 +37,9 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
             registry.registerAlias(beanName, beanDefinitionHolder.getAliases());
         }
 
+        int nowCount = registry.getBeanDefinitionCount();
+
+        return nowCount - beforeCount;
     }
 
     private BeanDefinitionParserDelegate createDelegate(BeanDefinitionParserDelegate parent) {

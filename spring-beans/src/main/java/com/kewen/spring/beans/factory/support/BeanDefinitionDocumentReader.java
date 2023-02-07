@@ -9,6 +9,6 @@ import cn.hutool.json.JSONArray;
  */
 public interface BeanDefinitionDocumentReader {
 
-    void  registerBeanDefinitions(JSONArray objects,BeanDefinitionRegistry registry);
+    int  registerBeanDefinitions(JSONArray objects,BeanDefinitionRegistry registry);
 
 }

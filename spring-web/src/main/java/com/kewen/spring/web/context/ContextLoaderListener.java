@@ -36,12 +36,17 @@ public class ContextLoaderListener implements ServletContextListener {
         //创建上下文对桑
         WebApplicationContext applicationContext = createWebApplicationContext(servletContext);
 
-        //加载父对象
-        ApplicationContext parentContext = loadParentContext(servletContext);
-        applicationContext.setParent(parentContext);
+        if (applicationContext instanceof ConfigurableWebApplicationContext){
+            ConfigurableWebApplicationContext cwac = (ConfigurableWebApplicationContext) applicationContext;
 
-        //配置刷新
-        configureAndRefreshWebApplicationContext(applicationContext,servletContext);
+            //加载父对象
+            ApplicationContext parentContext = loadParentContext(servletContext);
+            cwac.setParent(parentContext);
+
+            //配置刷新
+            configureAndRefreshWebApplicationContext(cwac,servletContext);
+        }
+
 
 
         servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,applicationContext);
@@ -53,7 +58,7 @@ public class ContextLoaderListener implements ServletContextListener {
      * @param wac 上下文
      * @param sc servlet上下文
      */
-    private void configureAndRefreshWebApplicationContext(WebApplicationContext wac, ServletContext sc) {
+    private void configureAndRefreshWebApplicationContext(ConfigurableWebApplicationContext wac, ServletContext sc) {
 
         //设置基础的 servlet上下文和配置
         wac.setId(sc.getInitParameter(CONTEXT_ID_PARAM) ==null?"defaultApplicationContextId":sc.getInitParameter(CONTEXT_ID_PARAM));

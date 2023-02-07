@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans>
 
-    <bean class="com.kewen.configular.one.controller.HelloController" id="helloController">
+    <bean class="com.kewen.spring.web.sample.controller.HelloController" name="c1,c2" id="helloController">
         <property name="helloService" ref="helloService"/>
     </bean>
-    <bean class="com.kewen.service.HelloService" id="helloService" autowire="byType"/>
+    <bean class="com.kewen.spring.web.sample.controller.HelloService" id="helloService">
+        <property name="helloService" ref="helloService"/>
+    </bean>
 
 </beans>

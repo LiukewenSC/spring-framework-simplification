@@ -12,8 +12,14 @@ public interface BeanDefinition {
 
     void setParentName(@Nullable String parentName);
 
+
     @Nullable
     String getParentName();
+
+    void setBeanClassName(@Nullable String beanClassName);
+
+    @Nullable
+    String getBeanClassName();
 
     void setScope(@Nullable String scope);
 
