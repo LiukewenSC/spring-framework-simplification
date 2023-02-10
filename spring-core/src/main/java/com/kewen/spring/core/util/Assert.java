@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * @descrpition  断言类
+ * @descrpition  断言类 直接复制过来的，这个不在研究范围内
  * @author kewen
  * @since 2023-02-07 10:56
  */

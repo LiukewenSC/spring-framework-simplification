@@ -22,7 +22,8 @@ public class ClassPathResource implements Resource {
 
     @Override
     public InputStream getInputStream() {
-        cn.hutool.core.io.resource.ClassPathResource resource = new cn.hutool.core.io.resource.ClassPathResource(path);
+        //此处用hutool的resource加载，只要保证不用spring的就可以了
+        cn.hutool.core.io.resource.ClassPathResource resource = new cn.hutool.core.io.resource.ClassPathResource(path,classLoader);
         return resource.getStream();
     }
 }

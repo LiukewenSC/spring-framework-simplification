@@ -28,7 +28,7 @@ public interface BeanDefinition {
 
     void setLazyInit(boolean lazyInit);
 
-    boolean isLazyInit();
+    boolean getLazyInit();
 
     void setDependsOn(@Nullable String... dependsOn);
 
@@ -53,4 +53,10 @@ public interface BeanDefinition {
     @Nullable
     String getFactoryMethodName();
 
+
+
+
+
+
+    boolean isSingleton();
 }
