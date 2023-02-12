@@ -1,5 +1,6 @@
 package com.kewen.spring.beans.factory.config;
 
+import com.kewen.spring.beans.MutablePropertyValues;
 import com.kewen.spring.core.lang.Nullable;
 
 /**
@@ -53,10 +54,7 @@ public interface BeanDefinition {
     @Nullable
     String getFactoryMethodName();
 
-
-
-
-
-
     boolean isSingleton();
+
+    MutablePropertyValues getPropertyValues();
 }

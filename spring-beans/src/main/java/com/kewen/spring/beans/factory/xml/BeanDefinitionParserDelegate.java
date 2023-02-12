@@ -1,13 +1,14 @@
 package com.kewen.spring.beans.factory.xml;
 
-import com.kewen.spring.beans.exception.BeansException;
+import com.kewen.spring.beans.MutablePropertyValues;
+import com.kewen.spring.beans.PropertyValue;
 import com.kewen.spring.beans.factory.config.BeanDefinition;
 import com.kewen.spring.beans.factory.config.BeanDefinitionHolder;
 import com.kewen.spring.beans.factory.config.GenericBeanDefinition;
 import com.kewen.spring.core.lang.Nullable;
-import com.kewen.spring.core.util.ClassUtils;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,7 +43,7 @@ public class BeanDefinitionParserDelegate {
     }
 
     private BeanDefinition createBeanDefinition(@Nullable String beanName, Map<String, Object> beanMap) {
-        BeanDefinition definition = new GenericBeanDefinition();
+        GenericBeanDefinition definition = new GenericBeanDefinition();
         String className = (String)beanMap.get("class");
         definition.setBeanClassName(className);
         String parentName = (String) beanMap.get("parent");
@@ -53,9 +54,34 @@ public class BeanDefinitionParserDelegate {
         }
         String scope = (String) beanMap.get("scope");
         definition.setScope(scope);
+
+        //解析属性
+        MutablePropertyValues propertyValues = new MutablePropertyValues();
+        Object property = beanMap.get("property");
+        if(property ==null) {
+            //为空不处理
+        }else if (property instanceof Collection){
+            List<Object> subs = (List<Object>)property;
+            for (Object sub : subs) {
+                PropertyValue propertyValue = pares2PropertyValue((Map) sub);
+                propertyValues.addPropertyValueOrReplace(propertyValue);
+            }
+        } else {
+            PropertyValue propertyValue = pares2PropertyValue((Map) property);
+            propertyValues.addPropertyValueOrReplace(propertyValue);
+        }
+        definition.setPropertyValues(propertyValues);
+
+
         //还有一部分先暂时不管
 
         return definition;
+    }
+    private PropertyValue pares2PropertyValue(Map map){
+        String name = (String)map.get("name");
+        String ref = (String)map.get("ref");
+        Object value = ref==null?map.get("value"):ref;
+        return new PropertyValue(name,value);
     }
 
 

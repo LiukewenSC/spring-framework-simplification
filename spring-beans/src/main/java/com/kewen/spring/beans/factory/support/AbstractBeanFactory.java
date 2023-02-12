@@ -21,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @descrpition 抽象的beanfactory
+ *      实现了大多数的bean的获取方法，但是没有提供bean的创建流程，只有一个抽象的方法供实现
  * @author kewen
  * @since 2023-02-07 10:10
  */

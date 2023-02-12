@@ -19,6 +19,13 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
         return null;
     }
 
+    /**
+     *  在注入bean属性之前 {populateBean()} 执行此方法，并必须返回true，若返回false则结束注入
+     * @param bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     default boolean postProcessAfterInstantiation(Object bean, String beanName) throws BeansException {
         return true;
     }

@@ -3,10 +3,13 @@ package com.kewen.spring.beans.factory.config;
 import cn.hutool.core.bean.BeanUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.kewen.spring.beans.MutablePropertyValues;
 import com.kewen.spring.beans.exception.BeansException;
 import com.kewen.spring.beans.factory.AutowireCapableBeanFactory;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.ClassUtils;
+
+import java.lang.reflect.Constructor;
 
 /**
  * @author kewen
@@ -18,10 +21,15 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
     public static final String SCOPE_DEFAULT = "";
 
 
-    @Deprecated
+    public static final int AUTOWIRE_BY_NAME = AutowireCapableBeanFactory.AUTOWIRE_BY_NAME;
+
+    public static final int AUTOWIRE_BY_TYPE = AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE;
+
+    public static final int AUTOWIRE_CONSTRUCTOR = AutowireCapableBeanFactory.AUTOWIRE_CONSTRUCTOR;
+
     public static final int AUTOWIRE_AUTODETECT = AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT;
 
-
+    private MutablePropertyValues propertyValues;
     @Nullable
     private  Class<?> beanClass;
 
@@ -37,6 +45,8 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
     private boolean autowireCandidate = true;
 
     private boolean primary = false;
+
+    private int autowireMode = AUTOWIRE_AUTODETECT;
 
     @Nullable
     private String factoryBeanName;
@@ -56,6 +66,38 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
 
     }
 
+    /**
+     * 返回注入的类型，有无参构造的直接按照类型注入，即set方法注入，其余返回预定的值；
+     * @return
+     */
+    public int getResolvedAutowireMode(){
+        if (this.autowireMode==AUTOWIRE_AUTODETECT){
+            //todo
+            if (true){
+                return AUTOWIRE_BY_NAME;
+            }
+            //如果有无参构造，则视为按类型注入
+            Constructor<?>[] constructors = getBeanClass().getConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == 0) {
+                    return AUTOWIRE_BY_TYPE;
+                }
+            }
+        }
+        return this.autowireMode;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     public boolean getLazyInit() {
         return lazyInit;
     }
@@ -63,6 +105,8 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
     public void setLazyInit(boolean lazyInit) {
         this.lazyInit = lazyInit;
     }
+
+
 
     @Override
     public void setBeanClassName(String beanClassName) {
@@ -150,6 +194,16 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
         this.factoryMethodName = factoryMethodName;
     }
 
+    public boolean hasPropertyValues() {
+        return  propertyValues != null && propertyValues.isEmpty();
+    }
+    public MutablePropertyValues getPropertyValues() {
+        return propertyValues;
+    }
+
+    public void setPropertyValues(MutablePropertyValues propertyValues) {
+        this.propertyValues = propertyValues;
+    }
 
     @Override
     public boolean isSingleton() {

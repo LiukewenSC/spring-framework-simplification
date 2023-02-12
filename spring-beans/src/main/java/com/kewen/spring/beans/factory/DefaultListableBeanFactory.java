@@ -1,22 +1,17 @@
 package com.kewen.spring.beans.factory;
 
-import com.kewen.spring.beans.BeanUtils;
-import com.kewen.spring.beans.BeanWrapper;
-import com.kewen.spring.beans.BeanWrapperImpl;
+import com.kewen.spring.beans.*;
 import com.kewen.spring.beans.exception.BeanDefinitionException;
 import com.kewen.spring.beans.exception.BeansException;
-import com.kewen.spring.beans.factory.config.BeanDefinition;
-import com.kewen.spring.beans.factory.config.BeanPostProcessor;
-import com.kewen.spring.beans.factory.config.InstantiationAwareBeanPostProcessor;
-import com.kewen.spring.beans.factory.config.RootBeanDefinition;
+import com.kewen.spring.beans.factory.config.*;
 import com.kewen.spring.beans.factory.support.AbstractBeanFactory;
 import com.kewen.spring.beans.factory.support.BeanDefinitionRegistry;
 import com.kewen.spring.core.lang.Nullable;
-import com.kewen.spring.core.util.ClassUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -112,7 +107,7 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
             //从缓存中获取单例值
             Object earlySingletonReference = getSingleton(beanName, false);
             //判断是否被改变了(是否有过增强)没有则返回缓存中的，有则返回代理的
-            if (exposedObject == bean){
+            if (earlySingletonReference !=null && exposedObject == bean){
                 exposedObject =earlySingletonReference;
             }
         }
@@ -122,7 +117,76 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
     }
     protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw) {
 
+        //此处有定义bean执行bean注入之前的钩子函数，暂时不处理
+        for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
+            if (beanPostProcessor instanceof  InstantiationAwareBeanPostProcessor){
+                boolean isPost = ((InstantiationAwareBeanPostProcessor) beanPostProcessor)
+                        .postProcessAfterInstantiation(bw.getWrappedInstance(), beanName);
+                if (!isPost){
+                    //返回了false就结束注入
+                    return;
+                }
+            }
+        }
+
+
+        int resolvedAutowireMode = mbd.getResolvedAutowireMode();
+        if (resolvedAutowireMode ==1){
+            //按照名称注入
+            autowireByName(beanName, mbd, bw);
+        }
+
+
     }
+
+    private void autowireByName(String beanName, RootBeanDefinition mbd, BeanWrapper bw) {
+
+        MutablePropertyValues propertyValues = mbd.getPropertyValues();
+
+        //解析属性注入的Bean的名字
+        Collection<String> propertyNames = unsatisfiedNonSimpleProperties(propertyValues,bw.getPropertyDescriptors());
+
+        for (String propertyName : propertyNames) {
+            Object bean = getBean(propertyName);
+
+            //替换得到的bean，以便于注入
+            //propertyValues.add(propertyName,bean);
+
+
+            Object wrappedInstance = bw.getWrappedInstance();
+
+            //直接注入，放弃原框架在外层的大量逻辑，此处简化了很多，但目的是把属性注入到bean中
+            PropertyDescriptor descriptor = bw.getPropertyDescriptor(propertyName);
+            Method writeMethod = descriptor.getWriteMethod();
+            try {
+                writeMethod.invoke(wrappedInstance,bean);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+
+
+
+
+    }
+
+    /**
+     * 解析属性注入的Bean名字
+     * @param pvs 配置的定义的值
+     * @param pds 保存原类中定义的
+     * @return
+     */
+    protected Collection<String> unsatisfiedNonSimpleProperties(PropertyValues pvs, PropertyDescriptor[] pds ) {
+        Set<String> result = new TreeSet<>();
+        for (PropertyDescriptor pd : pds) {
+            if (pvs.contains(pd.getName())) {
+                result.add(pd.getName());
+            }
+        }
+        return result;
+    }
+
     protected Object initializeBean(String beanName, Object bean, @Nullable RootBeanDefinition mbd) {
         //todo bean的各种钩子函数
 

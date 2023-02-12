@@ -1,5 +1,6 @@
 package com.kewen.spring.beans.factory.config;
 
+import com.kewen.spring.beans.exception.BeansException;
 import com.kewen.spring.beans.factory.ObjectFactory;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.Assert;
@@ -39,6 +40,11 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
 
     private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
 
+    /**
+     * 单例bean是否正在创建的标记map
+     * 当创建时会首先在此加入beanName表示正在创建，中途会用到此做判断
+     * 当完成创建后会删除里面的内容
+     */
     private final Set<String> singletonsCurrentlyInCreation =
             Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
@@ -146,9 +152,16 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
     public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
         Object singletonObject = singletonObjects.get(beanName);
         if (singletonObject ==null){
-            //这儿就会走创建bean的流程
-            singletonObject= singletonFactory.getObject();
-            addSingleton(beanName,singletonObject);
+            //标记正在创建
+            beforeSingletonCreation(beanName);
+            try {
+                //这儿就会走创建bean的流程
+                singletonObject= singletonFactory.getObject();
+                addSingleton(beanName,singletonObject);
+            } finally {
+                //标记创建完成
+                afterSingletonCreation(beanName);
+            }
         }
         return singletonObject;
     }
@@ -168,5 +181,24 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
         return singletonObjects.size();
     }
 
+    /**
+     * 创建单例bean开始，标记正在创建
+     * @param beanName
+     */
+    protected void beforeSingletonCreation(String beanName) {
+        if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.add(beanName)) {
+            throw new BeansException(beanName);
+        }
+    }
+
+    /**
+     * 创建单例完成之后，标记创建完成
+     * @param beanName
+     */
+    protected void afterSingletonCreation(String beanName) {
+        if (!this.inCreationCheckExclusions.contains(beanName) && !this.singletonsCurrentlyInCreation.remove(beanName)) {
+            throw new IllegalStateException("Singleton '" + beanName + "' isn't currently in creation");
+        }
+    }
 
 }

@@ -5,8 +5,18 @@ package com.kewen.spring.web.sample.controller;
  * @since 2023-02-07 9:31
  */
 public class HelloService {
+
+    HelloController helloController;
     public String hello(){
         System.out.printf("hello");
         return "hello";
+    }
+
+    public HelloController getHelloController() {
+        return helloController;
+    }
+
+    public void setHelloController(HelloController helloController) {
+        this.helloController = helloController;
     }
 }

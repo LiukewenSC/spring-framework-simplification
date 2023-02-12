@@ -3,9 +3,10 @@
 
     <bean class="com.kewen.spring.web.sample.controller.HelloController" name="c1,c2" id="helloController">
         <property name="helloService" ref="helloService"/>
+        <property name="helloService2" value = "helloService2"/>
     </bean>
     <bean class="com.kewen.spring.web.sample.controller.HelloService" id="helloService">
-        <property name="helloService" ref="helloService"/>
+        <property name="helloController" ref="helloController"/>
     </bean>
 
 </beans>
