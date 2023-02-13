@@ -12,6 +12,7 @@ import com.kewen.spring.core.env.Environment;
 import com.kewen.spring.core.io.Resource;
 import com.kewen.spring.core.io.ResourceLoader;
 import com.sun.istack.internal.Nullable;
+import org.w3c.dom.Document;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -57,16 +58,14 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
             throw new BeansException(
                     "Detected cyclic loading of " + resource + " - check your import definitions!");
         }
-        //这里开始与spring原生有很大不一样，这里用json代替以简化逻辑
-        InputStream inputStream = resource.getInputStream();
-        String xml = IoUtil.read(inputStream, StandardCharsets.UTF_8);
-        JSONObject root = JSONUtil.parseFromXml(xml);
-        JSONObject beans = root.getJSONObject("beans");
-        JSONArray objects = beans.getJSONArray("bean");
-        DefaultBeanDefinitionDocumentReader reader = new DefaultBeanDefinitionDocumentReader();
-        //注册解析内容到BeanDefinitionRegistry中  此处精简了非常多的内容，逻辑整体为 将解析的xml注册到BeanDefinitionRegistry中，
 
-        int registerCount = reader.registerBeanDefinitions(objects, beanDefinitionRegistry);
+        //注册解析内容到BeanDefinitionRegistry中  此处精简了非常多的内容，逻辑整体为 将解析的xml注册到BeanDefinitionRegistry中，
+        InputStream inputStream = resource.getInputStream();
+        Document document = XmlUtil.creatDocument(inputStream);
+
+        //注册整个文档中的bean
+        DefaultBeanDefinitionDocumentReader reader = new DefaultBeanDefinitionDocumentReader();
+        int registerCount = reader.registerBeanDefinitions(document, beanDefinitionRegistry);
 
         return registerCount;
     }

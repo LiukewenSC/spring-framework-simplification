@@ -33,14 +33,14 @@ public class MutablePropertyValues implements PropertyValues {
     }
 
     public void add(String name,Object value){
-        addPropertyValueOrReplace(new PropertyValue(name,value));
+        addOrReplacePropertyValue(new PropertyValue(name,value));
     }
 
     /**
      * 加载或更新值
      * @param propertyValue
      */
-    public void addPropertyValueOrReplace(PropertyValue propertyValue){
+    public void addOrReplacePropertyValue(PropertyValue propertyValue){
         for (int i = 0; i < propertyValueList.size(); i++) {
             PropertyValue oldValue = propertyValueList.get(i);
             if (oldValue.getName().equals(propertyValue.getName())){

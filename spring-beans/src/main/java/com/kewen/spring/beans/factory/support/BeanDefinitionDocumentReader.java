@@ -1,6 +1,8 @@
 package com.kewen.spring.beans.factory.support;
 
 import cn.hutool.json.JSONArray;
+import com.kewen.spring.core.io.Resource;
+import org.w3c.dom.Document;
 
 /**
  * @descrpition 
@@ -9,6 +11,12 @@ import cn.hutool.json.JSONArray;
  */
 public interface BeanDefinitionDocumentReader {
 
-    int  registerBeanDefinitions(JSONArray objects,BeanDefinitionRegistry registry);
+    /**
+     * 注册文档中的bean
+     * @param document
+     * @param registry
+     * @return
+     */
+    int  registerBeanDefinitions(Document document, BeanDefinitionRegistry registry);
 
 }

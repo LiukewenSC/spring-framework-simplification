@@ -6,6 +6,8 @@ import com.kewen.spring.beans.factory.config.BeanDefinition;
 import com.kewen.spring.beans.factory.config.BeanDefinitionHolder;
 import com.kewen.spring.beans.factory.config.GenericBeanDefinition;
 import com.kewen.spring.core.lang.Nullable;
+import com.kewen.spring.core.util.StringUtils;
+import org.w3c.dom.Element;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,11 +20,24 @@ import java.util.Map;
  */
 public class BeanDefinitionParserDelegate {
 
+    /**
+     * 解析得到元素中的内容，得到 BeanDefinitionHolder
+     * @param beanElement
+     * @return
+     */
     @Nullable
-    public BeanDefinitionHolder parseBeanDefinitionElement(Map<String, Object> beanMap) {
+    public BeanDefinitionHolder parseBeanDefinitionElement(Element beanElement) {
         //
-        String beanClass = (String) beanMap.get("class");
-        String id = (String) beanMap.get("id");
+
+        String id = beanElement.getAttribute("id");
+        String beanClass = beanElement.getAttribute("class");
+        String name = beanElement.getAttribute("name");
+        String value = beanElement.getAttribute("value");
+        String ref = beanElement.getAttribute("ref");
+        String parent = beanElement.getAttribute("parent");
+        String primary = beanElement.getAttribute("primary");
+        String scope = beanElement.getAttribute("scope");
+
         String beanName;
         if (id == null || id.trim().equals("")) {
             beanName = beanClass;
@@ -30,8 +45,28 @@ public class BeanDefinitionParserDelegate {
             beanName = id;
         }
 
-        BeanDefinition beanDefinition = createBeanDefinition(beanName, beanMap);
-        String nameAttr = (String) beanMap.get("name");
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClassName(beanClass);
+        beanDefinition.setParentName(parent);
+        if (primary !=null && !"".equals(primary) ){
+            boolean b = Boolean.parseBoolean(primary);
+            beanDefinition.setPrimary(b);
+        }
+        beanDefinition.setScope(scope);
+
+        //解析属性
+        MutablePropertyValues propertyValues = new MutablePropertyValues();
+        List<Element> children = XmlUtil.getChildren(beanElement);
+        for (Element child : children) {
+            String propertyName = child.getAttribute("name");
+            String propertyRef = child.getAttribute("ref");
+            Object propertyValue = StringUtils.isEmpty(propertyRef) ?child.getAttribute("value"):propertyRef;
+            //此处还有可能有子元素列表，要注意
+            propertyValues.add(propertyName,propertyValue);
+        }
+        beanDefinition.setPropertyValues(propertyValues);
+
+        String nameAttr = name;
         String[] aliases;
         if (nameAttr != null && nameAttr.trim().equals("")) {
             aliases = nameAttr.split(",");
@@ -41,48 +76,5 @@ public class BeanDefinitionParserDelegate {
         return new BeanDefinitionHolder(beanDefinition, beanName, aliases);
 
     }
-
-    private BeanDefinition createBeanDefinition(@Nullable String beanName, Map<String, Object> beanMap) {
-        GenericBeanDefinition definition = new GenericBeanDefinition();
-        String className = (String)beanMap.get("class");
-        definition.setBeanClassName(className);
-        String parentName = (String) beanMap.get("parent");
-        definition.setParentName(parentName);
-        Boolean primary = (Boolean) beanMap.get("primary");
-        if (primary !=null){
-            definition.setPrimary(primary);
-        }
-        String scope = (String) beanMap.get("scope");
-        definition.setScope(scope);
-
-        //解析属性
-        MutablePropertyValues propertyValues = new MutablePropertyValues();
-        Object property = beanMap.get("property");
-        if(property ==null) {
-            //为空不处理
-        }else if (property instanceof Collection){
-            List<Object> subs = (List<Object>)property;
-            for (Object sub : subs) {
-                PropertyValue propertyValue = pares2PropertyValue((Map) sub);
-                propertyValues.addPropertyValueOrReplace(propertyValue);
-            }
-        } else {
-            PropertyValue propertyValue = pares2PropertyValue((Map) property);
-            propertyValues.addPropertyValueOrReplace(propertyValue);
-        }
-        definition.setPropertyValues(propertyValues);
-
-
-        //还有一部分先暂时不管
-
-        return definition;
-    }
-    private PropertyValue pares2PropertyValue(Map map){
-        String name = (String)map.get("name");
-        String ref = (String)map.get("ref");
-        Object value = ref==null?map.get("value"):ref;
-        return new PropertyValue(name,value);
-    }
-
 
 }
