@@ -15,18 +15,21 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @descrpition 默认的可配置工厂
-    继承AbstractBeanFactory，同时实现了ConfigurableListableBeanFactory，BeanDefinitionRegistry
-    最底层的实现类，维护了 beanDefinitionMap ，因此，得以实现创建bean的全过程，
-    实现了ListableBeanFactory，因此也有获取bean定义的方法
-    实现了BeanDefinitionRegistry，因此也有注册bean的方法
  * @author kewen
- * @since 2023-02-06 14:01
+ * @descrpition 默认的可配置工厂
+ * 继承AbstractBeanFactory，同时实现了ConfigurableListableBeanFactory，BeanDefinitionRegistry
+ * 最底层的实现类，维护了 beanDefinitionMap ，因此，得以实现创建bean的全过程，
+ * 实现了ListableBeanFactory，因此也有获取bean定义的方法
+ * 实现了BeanDefinitionRegistry，因此也有注册bean的方法
+ * @since 2023-02-06
  */
 public class DefaultListableBeanFactory extends AbstractBeanFactory implements ConfigurableListableBeanFactory, BeanDefinitionRegistry {
 
 
-    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);	/** List of bean definition names, in registration order. */
+    private final Map<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>(256);
+    /**
+     * List of bean definition names, in registration order.
+     */
     private volatile List<String> beanDefinitionNames = new ArrayList<>(256);
 
     private boolean allowCircularReferences = true;
@@ -50,7 +53,7 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
         //此处可以创建代理，可能返回代理类
         Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 
-        if(bean !=null){
+        if (bean != null) {
             return bean;
         }
 
@@ -60,7 +63,7 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
         return beanInstance;
     }
 
-    private Object doCreateBean(String beanName, RootBeanDefinition mbdToUse, Object[] args) {
+    private Object  doCreateBean(String beanName, RootBeanDefinition mbdToUse, Object[] args) {
 
         //此处有从 this.factoryBeanInstanceCache.remove(beanName) 取回factoryBean的操作
         BeanWrapper beanWrapper = createBeanInstance(beanName, mbdToUse, args);
@@ -72,7 +75,7 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
 
         //此处解决循环依赖（貌似切面也在这里处理），在允许循环依赖且为单例且 在循环中正在创建
         boolean earlySingletonExposure = mbdToUse.isSingleton() && this.allowCircularReferences && isSingletonCurrentlyInCreation(beanName);
-        if (earlySingletonExposure){
+        if (earlySingletonExposure) {
             //如果一级缓存中没有，则将 ()-> 创建的匿名对象加入到三级缓存中，
             // 例如A->B->A循环而言，现在创建A，加入到三级缓存中，在 populateBean的时候会加载B，从而创建B,
             //      再当B调用A的时候通过getSingleton()方法会拿到三级缓存中的工厂，通过getObject()拿到实例，同时加入二级缓存中
@@ -93,22 +96,25 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
             //从缓存中获取单例值
             Object earlySingletonReference = getSingleton(beanName, false);
             //判断是否被改变了(是否有过增强)没有则返回缓存中的，有则返回代理的
-            if (earlySingletonReference !=null && exposedObject == bean){
-                exposedObject =earlySingletonReference;
+            if (earlySingletonReference != null && exposedObject == bean) {
+                exposedObject = earlySingletonReference;
             }
         }
         //注册单例模式的注销方法
-        registerDisposableBeanIfNecessary(beanName,exposedObject,mbdToUse);
+        registerDisposableBeanIfNecessary(beanName, exposedObject, mbdToUse);
         return exposedObject;
     }
+
     protected void populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw) {
+
+        PropertyValues pvs = mbd.getPropertyValues();
 
         //此处有定义bean执行bean注入之前的钩子函数，暂时不处理
         for (BeanPostProcessor beanPostProcessor : getBeanPostProcessors()) {
-            if (beanPostProcessor instanceof  InstantiationAwareBeanPostProcessor){
+            if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
                 boolean isPost = ((InstantiationAwareBeanPostProcessor) beanPostProcessor)
                         .postProcessAfterInstantiation(bw.getWrappedInstance(), beanName);
-                if (!isPost){
+                if (!isPost) {
                     //返回了false就结束注入
                     return;
                 }
@@ -117,20 +123,59 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
 
 
         int resolvedAutowireMode = mbd.getResolvedAutowireMode();
-        if (resolvedAutowireMode ==1){
+        if (resolvedAutowireMode == AutowireCapableBeanFactory.AUTOWIRE_BY_NAME) {
             //按照名称注入
-            autowireByName(beanName, mbd, bw);
+            autowireByName(beanName, pvs, bw);
+        } else if (resolvedAutowireMode == AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE) {
+            //按照类型注入
+
         }
+        // 按照property配置注入
 
-
+        PropertyDescriptor[] filteredPds = null;
+        if (pvs == null) {
+            pvs = new MutablePropertyValues();
+        }
+        for (BeanPostProcessor bp : getBeanPostProcessors()) {
+            if (bp instanceof InstantiationAwareBeanPostProcessor) {
+                InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+                //获取bean定义的相关东西， @Autowired 主要就是在这里处理了， 其实现类为
+                PropertyValues pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName);
+                if (pvsToUse == null) {
+                    if (filteredPds == null) {
+                        //未找到默认提供全部的方法
+                        filteredPds = filterPropertyDescriptorsForDependencyCheck(bw);
+                    }
+                    pvsToUse = ibp.postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName);
+                    if (pvsToUse == null) {
+                        return;
+                    }
+                }
+                pvs = pvsToUse;
+            }
+        }
     }
 
-    private void autowireByName(String beanName, RootBeanDefinition mbd, BeanWrapper bw) {
+    protected PropertyDescriptor[] filterPropertyDescriptorsForDependencyCheck(BeanWrapper bw) {
+        // 此处排除一些方法，框架说主要是 cglib 相关的。这里先不考虑
+        return bw.getPropertyDescriptors();
+    }
 
-        MutablePropertyValues propertyValues = mbd.getPropertyValues();
+    /**
+     * 按照名称注入，原来之前都理解错了意思，按名称注入是按照字段的名称和set方法去找对应的bean，然后注册容器中已经有了的bean
+     * 所以说实际上xml中配置了autowire="byName" 属性之后就不用再配置其他东西了，这才是按名称注入
+     * 一般我们写的<property>标签都是自己装配的注入方式，需要按照既定的目标解析的
+     * 注意，按名称注入查找的对应的set方法，因此字段对应的set方法去掉set之后必须和原来的名字保持一致，否则不会注入
+     *
+     * @param beanName
+     * @param pvs
+     * @param bw
+     */
+    private void autowireByName(String beanName, PropertyValues pvs, BeanWrapper bw) {
+
 
         //解析属性注入的Bean的名字
-        Collection<String> propertyNames = unsatisfiedNonSimpleProperties(propertyValues,bw.getPropertyDescriptors());
+        Collection<String> propertyNames = unsatisfiedNonSimpleProperties(pvs, bw.getPropertyDescriptors());
 
         for (String propertyName : propertyNames) {
             Object bean = getBean(propertyName);
@@ -145,25 +190,23 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
             PropertyDescriptor descriptor = bw.getPropertyDescriptor(propertyName);
             Method writeMethod = descriptor.getWriteMethod();
             try {
-                writeMethod.invoke(wrappedInstance,bean);
+                writeMethod.invoke(wrappedInstance, bean);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
 
-
-
-
     }
 
     /**
      * 解析属性注入的Bean名字
+     *
      * @param pvs 配置的定义的值
      * @param pds 保存原类中定义的
      * @return
      */
-    protected Collection<String> unsatisfiedNonSimpleProperties(PropertyValues pvs, PropertyDescriptor[] pds ) {
+    protected Collection<String> unsatisfiedNonSimpleProperties(PropertyValues pvs, PropertyDescriptor[] pds) {
         Set<String> result = new TreeSet<>();
         for (PropertyDescriptor pd : pds) {
             if (pvs.contains(pd.getName())) {
@@ -181,6 +224,7 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
 
     /**
      * 获取一个引用，以便尽早访问指定的bean，通常是为了解决循环引用。
+     *
      * @param beanName
      * @param mbd
      * @param bean
@@ -201,14 +245,15 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
     /**
      * 创建beanWrapper
      */
-    private BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbdToUse, Object[] args){
+    private BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbdToUse, Object[] args) {
         //创建Bean的包装简化处理，原框架还有其他需要实例化bean的情况，如Class不存在，暂时不讨论
-        Object instance= BeanUtils.instantiateClass(mbdToUse.getBeanClass());
+        Object instance = BeanUtils.instantiateClass(this, mbdToUse.getBeanClass());
         return new BeanWrapperImpl(instance);
     }
 
     /**
      * 此处有逻辑给bean一个机会返回代理类而不是原类
+     *
      * @param beanName
      * @param mbd
      * @return
@@ -218,20 +263,21 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
 
         // 此处有逻辑给bean一个机会返回代理类而不是原类
         Class<?> beanClass = mbd.getBeanClass();
-        bean = applyBeanPostProcessorsBeforeInstantiation(beanName,beanClass);
-        if (bean !=null){
-            bean = applyBeanPostProcessorsAfterInitialization(bean,beanName);
+        bean = applyBeanPostProcessorsBeforeInstantiation(beanName, beanClass);
+        if (bean != null) {
+            bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
         }
         return bean;
     }
 
     /**
      * 处理
+     *
      * @param beanClass
      * @param beanName
      * @return
      */
-    protected Object applyBeanPostProcessorsBeforeInstantiation(String beanName,Class<?> beanClass) {
+    protected Object applyBeanPostProcessorsBeforeInstantiation(String beanName, Class<?> beanClass) {
         for (BeanPostProcessor bp : getBeanPostProcessors()) {
             if (bp instanceof InstantiationAwareBeanPostProcessor) {
                 InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
@@ -245,13 +291,12 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
     }
 
     /**
-     *
      * @param existingBean
      * @param beanName
      * @return
      * @throws BeansException
      */
-public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
+    public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
             throws BeansException {
 
         Object result = existingBean;
@@ -266,14 +311,16 @@ public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, St
     }
 
 
-    /** Map of bean definition objects, keyed by bean name. */
+    /**
+     * Map of bean definition objects, keyed by bean name.
+     */
 
     @Override
     public void registerBeanDefinition(String beanName, BeanDefinition beanDefinition) {
         if (beanDefinitionMap.containsKey(beanName)) {
             throw new BeansException(" beanDefinition is exists");
         }
-        this.beanDefinitionMap.put(beanName,beanDefinition);
+        this.beanDefinitionMap.put(beanName, beanDefinition);
         this.beanDefinitionNames.add(beanName);
     }
 
@@ -298,8 +345,16 @@ public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, St
     }
 
     @Override
-    public String[] getBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
-        return new String[0];
+    public List<String> getBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
+        List<String> beanNames = new ArrayList<>();
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionMap.entrySet()) {
+            String beanName = entry.getKey();
+            BeanDefinition definition = entry.getValue();
+            if (type.isAssignableFrom(definition.getBeanClass())) {
+                beanNames.add(beanName);
+            }
+        }
+        return beanNames;
     }
 
     @Override
@@ -318,11 +373,38 @@ public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, St
         for (String beanName : definitionNames) {
             Object singleton = getBean(beanName);
             //初始化完成后再执行对应后处理
-            if (singleton instanceof SmartInitializingSingleton){
+            if (singleton instanceof SmartInitializingSingleton) {
                 ((SmartInitializingSingleton) singleton).afterSingletonsInstantiated();
             }
         }
 
 
     }
+
+    @Override
+    public <T> T getBean(String beanName, Class<T> clazz) {
+        BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+        Class<?> beanClass = beanDefinition.getBeanClass();
+        if (!clazz.isAssignableFrom(beanClass)) {
+            throw new BeansException("getBean error");
+        }
+        return getBean(beanName);
+    }
+
+    @Override
+    public <T> T getBean(Class<T> clazz) {
+        List<String> beanNames = getBeanNamesForType(clazz, true, true);
+        if (beanNames.size() == 1) {
+            return getBean(beanNames.get(0));
+        } else if (beanNames.size() > 1) {
+            for (String beanName : beanNames) {
+                BeanDefinition beanDefinition = beanDefinitionMap.get(beanName);
+                if (beanDefinition.isPrimary()) {
+                    return getBean(beanName);
+                }
+            }
+        }
+        throw new BeansException("工厂里没有此bean : "+clazz.getName());
+    }
+
 }

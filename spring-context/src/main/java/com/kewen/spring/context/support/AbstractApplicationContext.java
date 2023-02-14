@@ -31,7 +31,7 @@ import java.util.Set;
  * @descrpition  上下文抽象类
  *         此类完成大部分applicationContext逻辑，特别重要的类
  * @author kewen
- * @since 2023-02-07 10:46
+ * @since 2023-02-07
  */
 public abstract class AbstractApplicationContext implements ConfigurableApplicationContext, ResourceLoader, ApplicationEventPublisher {
     private final List<BeanFactoryPostProcessor> beanFactoryPostProcessors = new ArrayList<>();
@@ -142,7 +142,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
                 //注册监听器
                 registerListeners();
 
-                //完成bean工厂初始化 ，此处出书画单例bean
+                //完成bean工厂初始化 ，此处初始化单例bean
                 finishBeanFactoryInitialization(beanFactory);
 
                 //完成初始化
@@ -231,7 +231,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
         }
 
         //注册容器中的监听器
-        String[] listenerNames = beanFactory.getBeanNamesForType(ApplicationListener.class, true, false);
+        List<String> listenerNames = beanFactory.getBeanNamesForType(ApplicationListener.class, true, false);
         if (listenerNames !=null){
             for (String listenerName : listenerNames) {
                 applicationEventMulticaster.addApplicationListenerBean(listenerName);

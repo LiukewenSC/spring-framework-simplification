@@ -14,7 +14,7 @@ import java.lang.reflect.Constructor;
 /**
  * @author kewen
  * @descrpition 抽象的bean定义
- * @since 2023-02-10 11:18
+ * @since 2023-02-10
  */
 public abstract class AbstractBeanDefinition implements BeanDefinition {
 
@@ -72,10 +72,6 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
      */
     public int getResolvedAutowireMode(){
         if (this.autowireMode==AUTOWIRE_AUTODETECT){
-            //todo
-            if (true){
-                return AUTOWIRE_BY_NAME;
-            }
             //如果有无参构造，则视为按类型注入
             Constructor<?>[] constructors = getBeanClass().getConstructors();
             for (Constructor<?> constructor : constructors) {
@@ -83,6 +79,7 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
                     return AUTOWIRE_BY_TYPE;
                 }
             }
+            return AUTOWIRE_CONSTRUCTOR;
         }
         return this.autowireMode;
     }

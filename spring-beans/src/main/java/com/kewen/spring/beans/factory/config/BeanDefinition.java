@@ -6,7 +6,7 @@ import com.kewen.spring.core.lang.Nullable;
 /**
  * @descrpition bean定义
  * @author kewen
- * @since 2023-02-06 16:32
+ * @since 2023-02-06
  */
 public interface BeanDefinition {
 
@@ -22,6 +22,8 @@ public interface BeanDefinition {
     @Nullable
     String getBeanClassName();
 
+    Class<?> getBeanClass();
+    void setBeanClass(@Nullable Class<?> beanClass) ;
     void setScope(@Nullable String scope);
 
     @Nullable

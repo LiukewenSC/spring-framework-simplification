@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ *  原框架 XmlReaderContext 就不要了，没啥用
  * @author kewen
  * @descrpition
  * @since 2023-02-06 16:26
@@ -23,8 +24,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
     @Nullable
     BeanDefinitionParserDelegate delegate;
 
+
     @Override
-    public int registerBeanDefinitions(Document document, BeanDefinitionRegistry registry) {
+    public int registerBeanDefinitions(Document document, XmlReaderContext xmlReaderContext) {
+
+        BeanDefinitionRegistry registry = xmlReaderContext.getBeanDefinitionRegistry();
 
         int beforeCount = registry.getBeanDefinitionCount();
 
@@ -39,10 +43,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
         List<Element> beanElements = XmlUtil.getChildren(rootElement);
 
         for (Element beanElement : beanElements) {
-            BeanDefinitionHolder beanDefinitionHolder = delegate.parseBeanDefinitionElement(beanElement);
-            String beanName = beanDefinitionHolder.getBeanName();
-            registry.registerBeanDefinition(beanName, beanDefinitionHolder.getBeanDefinition());
-            registry.registerAlias(beanName, beanDefinitionHolder.getAliases());
+            if (delegate.isDefaultNamespace(beanElement.getNamespaceURI())){
+                delegate.parseDefaultElement(beanElement,xmlReaderContext);
+            } else {
+                delegate.parseCustomBeanDefinitionElement(beanElement,xmlReaderContext);
+            }
         }
 
         int nowCount = registry.getBeanDefinitionCount();

@@ -4,6 +4,7 @@ import com.kewen.spring.beans.exception.BeansException;
 import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
 import com.kewen.spring.beans.factory.DefaultListableBeanFactory;
 import com.kewen.spring.beans.factory.config.BeanPostProcessor;
+import com.kewen.spring.beans.factory.config.RootBeanDefinition;
 import com.kewen.spring.beans.factory.support.AbstractBeanFactory;
 import com.kewen.spring.beans.factory.xml.XmlBeanDefinitionReader;
 import com.kewen.spring.context.ApplicationContext;
@@ -54,6 +55,13 @@ public class XmlWebApplicationContext extends AbstractApplicationContext impleme
      * @param beanFactory
      */
     public void loadBeanDefinitions(DefaultListableBeanFactory beanFactory) throws IOException {
+
+        //todo 肯定不是在这里注入自己，在哪里来着，后面再分析
+        Class<? extends DefaultListableBeanFactory> factoryClass = beanFactory.getClass();
+        beanFactory.registerBeanDefinition(factoryClass.getName(),new RootBeanDefinition(factoryClass));
+        beanFactory.registerSingleton(factoryClass.getName(),beanFactory);
+
+        //加载beanDefinition
         XmlBeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(beanFactory);
 
         beanDefinitionReader.setEnvironment(getEnvironment());
@@ -66,6 +74,8 @@ public class XmlWebApplicationContext extends AbstractApplicationContext impleme
 
     }
     protected void loadBeanDefinitions(XmlBeanDefinitionReader reader) throws IOException {
+
+
         String[] configLocations = getConfigLocations();
         if (configLocations != null) {
             for (String configLocation : configLocations) {

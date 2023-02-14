@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @descrpition 默认的单例注册容器
  * @author kewen
- * @since 2023-02-07 16:23
+ * @since 2023-02-07
  */
 public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
 
@@ -83,6 +83,7 @@ public class DefaultSingletonBeanRegistry implements SingletonBeanRegistry {
     public Object getSingleton(String beanName) {
         return getSingleton(beanName, true);
     }
+
 
 
     /**

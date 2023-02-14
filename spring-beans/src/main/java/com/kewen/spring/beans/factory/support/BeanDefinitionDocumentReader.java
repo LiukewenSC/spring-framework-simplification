@@ -1,6 +1,7 @@
 package com.kewen.spring.beans.factory.support;
 
 import cn.hutool.json.JSONArray;
+import com.kewen.spring.beans.factory.xml.XmlReaderContext;
 import com.kewen.spring.core.io.Resource;
 import org.w3c.dom.Document;
 
@@ -14,9 +15,9 @@ public interface BeanDefinitionDocumentReader {
     /**
      * 注册文档中的bean
      * @param document
-     * @param registry
+     * @param xmlReaderContext
      * @return
      */
-    int  registerBeanDefinitions(Document document, BeanDefinitionRegistry registry);
+    int  registerBeanDefinitions(Document document, XmlReaderContext xmlReaderContext);
 
 }

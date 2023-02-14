@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * @descrpition 注册代理工具
  * @author kewen
- * @since 2023-02-07 13:59
+ * @since 2023-02-07
  */
 public class PostProcessorRegistrationDelegate {
     /**
@@ -116,7 +116,7 @@ public class PostProcessorRegistrationDelegate {
      * @param applicationContext
      */
     public static void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
-        String[] beanPostProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
+        List<String> beanPostProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
         if(beanPostProcessorNames==null){
             return;
         }

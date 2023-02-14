@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="com.kewen.spring"/>
 
     <bean class="com.kewen.spring.web.sample.controller.HelloController" name="c1,c2" id="helloController">
         <property name="helloService" ref="helloService"/>
-        <property name="helloService2" value = "helloService2"/>
+        <property name="helloService2" value="helloService2"/>
     </bean>
     <bean class="com.kewen.spring.web.sample.controller.HelloService" id="helloService">
         <property name="helloController" ref="helloController"/>

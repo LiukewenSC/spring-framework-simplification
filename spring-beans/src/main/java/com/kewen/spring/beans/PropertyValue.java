@@ -18,6 +18,7 @@ public class PropertyValue {
      * 配置的值，此处有两种类型的值，
      * 第一种，从xml中解析的 property标签中的value值或ref值
      * 第二种，在填充属性population中得到属性对应的bean之后将其替换为bean
+     * todo 应该还有第三种，在使用Autowired的时候会注入required参数(boolean)需回头验证
      *
      */
     @Nullable

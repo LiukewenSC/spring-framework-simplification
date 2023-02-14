@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @descrpition 抽象的beanfactory
  *      实现了大多数的bean的获取方法，但是没有提供bean的创建流程，只有一个抽象的方法供实现
  * @author kewen
- * @since 2023-02-07 10:10
+ * @since 2023-02-07
  */
 public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry implements ConfigurableBeanFactory {
 
@@ -53,17 +53,52 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
     }
 
     @Override
-    public Object getBean(String beanName) {
-        return doGetBean(beanName);
+    public <T> T  getBean(String beanName) {
+        return doGetBean(beanName,null,null,false);
     }
-    protected Object doGetBean(String name){
+
+    protected Object getObjectForBeanInstance(Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
+        //此处处理beanFactory的情况，是beanFactory会报错 ，先暂时忽略
+        return beanInstance;
+    }
+
+    private String transformName(String beanName) {
+        //todo 有特殊符号之类的...
+        return beanName;
+    }
+    protected RootBeanDefinition getMergedBeanDefinition(String beanName, BeanDefinition bd)
+            throws BeanDefinitionException {
+
+        RootBeanDefinition rootBeanDefinition = mergedBeanDefinitions.get(beanName);
+        if (rootBeanDefinition !=null){
+            return rootBeanDefinition;
+        }
+        rootBeanDefinition = new RootBeanDefinition(bd);
+
+        mergedBeanDefinitions.put(beanName,rootBeanDefinition);
+
+        return rootBeanDefinition;
+    }
+
+    /**
+     * 获取bean，返回可能为空
+     * @param name
+     * @param requiredType 暂时没用
+     * @param args 暂时没用
+     * @param typeCheckOnly 暂时没用
+     * @param <T>
+     * @return
+     * @throws BeansException
+     */
+    @Nullable
+    protected <T> T doGetBean(String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly) throws BeansException {
 
         //解析名字，可能有符号&之类的，先不处理那种复杂的情况
         String beanName = transformName(name);
 
         Object sharedInstance = getSingleton(beanName);
         if (sharedInstance !=null){
-            return sharedInstance;
+            return (T)sharedInstance;
         }
 
         //在父级beanFactory中查找
@@ -72,7 +107,7 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
             sharedInstance = parent.getBean(beanName);
         }
         if (sharedInstance != null){
-            return sharedInstance;
+            return (T)sharedInstance;
         }
 
         RootBeanDefinition rootBeanDefinition = getMergedBeanDefinition(beanName, getBeanDefinition(beanName));
@@ -104,46 +139,13 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
 
         //如果传入转换类型，还要对bean进行转换
 
-        return bean;
+        return (T)bean;
 
 
     }
-    protected Object getObjectForBeanInstance(Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
-        //此处处理beanFactory的情况，是beanFactory会报错 ，先暂时忽略
-        return beanInstance;
-    }
-
-    private String transformName(String beanName) {
-        //todo 有特殊符号之类的...
-        return beanName;
-    }
-    protected RootBeanDefinition getMergedBeanDefinition(String beanName, BeanDefinition bd)
-            throws BeanDefinitionException {
-
-        RootBeanDefinition rootBeanDefinition = mergedBeanDefinitions.get(beanName);
-        if (rootBeanDefinition !=null){
-            return rootBeanDefinition;
-        }
-        rootBeanDefinition = new RootBeanDefinition(bd);
-
-        mergedBeanDefinitions.put(beanName,rootBeanDefinition);
-
-        return rootBeanDefinition;
-    }
-
-    @Override
-    public <T> T getBean(String beanName, Class<T> clazz) {
-        return null;
-    }
-
-    @Override
-    public <T> T getBean(Class<T> clazz) {
-        return null;
-    }
-
     @Override
     public boolean containsBean(String beanName) {
-        return false;
+        return getBean(beanName) != null;
     }
 
     protected abstract BeanDefinition getBeanDefinition(String beanName) throws BeanDefinitionException;

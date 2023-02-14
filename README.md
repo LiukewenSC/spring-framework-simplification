@@ -72,6 +72,28 @@ spring框架学习目的使用
 
 ### 
 
+## 流程说明
+### xml启动主体流程
+由Tomcat的 ServletContextListener 类调起
+在xml的servlet配置中 配置<context-param>参数，指定contextClass=ContextLoaderListener，此Class实现ServletContextListener，Tomcat启动时，会执行此类的contextInitialized方法，从而开始启动容器类
+启动时先创建WebApplicationContext上下文对象，然后从ServletContext中加载父对象，一般而言，此时是没有的，然后配置和刷新。
+配置主要是把servletContext的相关东西设置到上下文中，方便后续取用不再使用servlet。
+然后配置制定的ApplicationContextInitializer应用上下文初始化器，并执行初始化（自定义配置上下文）。之后开始刷新操作。
+上下文的刷新操作refresh()反应了启动上下文的全流程。
+    首先创建beanFactory工厂，创建工厂的方法中会加载beanDefinition定义，beanDefinition保存了需要加载到容器中的实例的一些属性信息，为很重要的实体。
+    然后添加系统的BeanPostProcessor到工厂中
+    再执行BeanDefinitionRegisterPostProcessor的初始化，因为涉及到BeanDifinition，保证这部分的功能先执行;
+    再执行BeanPostProcessor 将容器配置的BeanPostProcessor首先初始化完成，保证后续调用初始化bean的时候可以使用，也就是说这鞋bean优先初始化
+    再执行一些 initMessageSource initApplicationEventMulticaster onRefresh 等
+    再执行监听器的初始化，用于监听对应的事件
+    再执行工厂完成的初始化事件，在这里，我们会初始化bean
+
+
+
+## todo
+    动态代理/切面逻辑
+    注解的注入
+    跨模块的classpath:META-INF/spring.handlers解析
 
 ## 其它
 

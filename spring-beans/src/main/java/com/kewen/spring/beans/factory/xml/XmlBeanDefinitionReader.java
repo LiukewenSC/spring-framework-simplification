@@ -64,8 +64,9 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         Document document = XmlUtil.creatDocument(inputStream);
 
         //注册整个文档中的bean
+        XmlReaderContext xmlReaderContext = new XmlReaderContext(getBeanDefinitionRegistry());
         DefaultBeanDefinitionDocumentReader reader = new DefaultBeanDefinitionDocumentReader();
-        int registerCount = reader.registerBeanDefinitions(document, beanDefinitionRegistry);
+        int registerCount = reader.registerBeanDefinitions(document, xmlReaderContext);
 
         return registerCount;
     }

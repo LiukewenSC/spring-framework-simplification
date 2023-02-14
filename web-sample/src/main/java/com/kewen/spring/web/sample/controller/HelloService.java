@@ -6,7 +6,7 @@ package com.kewen.spring.web.sample.controller;
  */
 public class HelloService {
 
-    HelloController helloController;
+    private HelloController helloController;
     public String hello(){
         System.out.printf("hello");
         return "hello";
