@@ -16,6 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @descrpition 默认的可配置工厂
+    继承AbstractBeanFactory，同时实现了ConfigurableListableBeanFactory，BeanDefinitionRegistry
+    最底层的实现类，维护了 beanDefinitionMap ，因此，得以实现创建bean的全过程，
+    实现了ListableBeanFactory，因此也有获取bean定义的方法
+    实现了BeanDefinitionRegistry，因此也有注册bean的方法
  * @author kewen
  * @since 2023-02-06 14:01
  */
@@ -29,24 +33,6 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
 
     public DefaultListableBeanFactory(BeanFactory parent) {
         setParentBeanFactory(parent);
-    }
-
-
-
-
-    @Override
-    public <T> T getBean(String beanName, Class<T> clazz) {
-        return null;
-    }
-
-    @Override
-    public <T> T getBean(Class<T> clazz) {
-        return null;
-    }
-
-    @Override
-    public boolean containsBean(String beanName) {
-        return false;
     }
 
     @Override
