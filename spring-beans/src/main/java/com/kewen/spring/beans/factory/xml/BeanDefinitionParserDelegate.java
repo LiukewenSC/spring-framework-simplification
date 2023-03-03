@@ -29,7 +29,7 @@ public class BeanDefinitionParserDelegate {
     /**
      * 解析得到元素中的内容，得到 BeanDefinitionHolder
      *
-     * @param beanElement beans 的子标签，通常为bean或者 component-scan
+     * @param beanElement beans 的子标签 目前实现有 component-scan ，内部通过spring.handlers构造对象ComponentScanBeanDefinitionParser扫描包
      * @return
      */
     @Nullable

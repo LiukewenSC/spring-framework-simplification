@@ -44,8 +44,10 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
         for (Element beanElement : beanElements) {
             if (delegate.isDefaultNamespace(beanElement.getNamespaceURI())){
+                //标准命名空间，如bean
                 delegate.parseDefaultElement(beanElement,xmlReaderContext);
             } else {
+                //非标准命名空间，如context，目前实现的有 Context
                 delegate.parseCustomBeanDefinitionElement(beanElement,xmlReaderContext);
             }
         }

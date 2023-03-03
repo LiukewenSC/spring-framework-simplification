@@ -11,5 +11,11 @@
 
     <artifactId>spring-webmvc</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.kewen.spring</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

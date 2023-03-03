@@ -14,7 +14,7 @@ public abstract class ApplicationContextEvent extends ApplicationEvent {
     public ApplicationContextEvent(ApplicationContext applicationContext) {
         super(applicationContext);
     }
-    ApplicationContext getApplicationContext(){
+    public ApplicationContext getApplicationContext(){
         return ((ApplicationContext) getSource());
     }
 }

@@ -37,6 +37,7 @@ public class XmlUtil {
         try {
             // 创建文档解析的对象
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            //设置了此的才会加载命名空间，否则不会加载命名空间的东西，解析出来就不对
             factory.setNamespaceAware(true);
             DocumentBuilder builder = factory.newDocumentBuilder();
             // 解析文档，形成文档树，也就是生成Document对象

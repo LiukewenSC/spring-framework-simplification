@@ -20,7 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @descrpition 
+ * @descrpition xml中Bean定义加载器
  * @author kewen
  * @since 2023-02-06 14:11
  */

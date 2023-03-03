@@ -13,6 +13,8 @@ import javax.servlet.ServletContext;
  */
 public interface ConfigurableWebApplicationContext extends ConfigurableApplicationContext,WebApplicationContext {
 
+    String APPLICATION_CONTEXT_ID_PREFIX = WebApplicationContext.class.getName() + ":";
+
     void setServletContext(ServletContext servletContext);
 
     void setServletConfig(@Nullable ServletConfig servletConfig);

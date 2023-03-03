@@ -5,6 +5,7 @@ import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.kewen.spring.beans.exception.BeanInstantiationException;
 import com.kewen.spring.beans.factory.BeanFactory;
+import com.kewen.spring.core.util.Assert;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class BeanUtils {
     public static <T> T instantiateClass(Class<T> aClass) {
-        return instantiateClass(aClass, null);
+        return instantiateClass(aClass, (Object[])null);
     }
     public static <T> T instantiateClass(Class<T> aClass,Object[] args) {
 
@@ -68,5 +69,10 @@ public class BeanUtils {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public static <T> T instantiateClass(Class<?> clazz, Class<T> assignableTo) throws BeanInstantiationException {
+        Assert.isAssignable(assignableTo, clazz);
+        return (T) instantiateClass(clazz);
     }
 }

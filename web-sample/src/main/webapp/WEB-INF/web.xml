@@ -25,17 +25,22 @@
         <listener-class>com.kewen.spring.web.context.ContextLoaderListener</listener-class>
     </listener>
 
-
-
+    <!--spring-mvc 相关-->
     <servlet>
-        <servlet-name>web-servlet</servlet-name>
-        <servlet-class>com.kewen.spring.core.servlet.SpringServlet</servlet-class>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>com.kewen.spring.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring-mvc.xml</param-value>
+            <!--<param-value>com.kewen.interceptor.GlobalInterceptor</param-value>-->
+            <!--<param-value>/WEB-INF/dispatcher-servlet.xml</param-value>-->
+        </init-param>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
-        <servlet-name>web-servlet</servlet-name>
+        <servlet-name>dispatcher</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
-
 
 
 

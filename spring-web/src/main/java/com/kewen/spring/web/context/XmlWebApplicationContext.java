@@ -3,25 +3,15 @@ package com.kewen.spring.web.context;
 import com.kewen.spring.beans.exception.BeansException;
 import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
 import com.kewen.spring.beans.factory.DefaultListableBeanFactory;
-import com.kewen.spring.beans.factory.config.BeanPostProcessor;
 import com.kewen.spring.beans.factory.config.RootBeanDefinition;
-import com.kewen.spring.beans.factory.support.AbstractBeanFactory;
 import com.kewen.spring.beans.factory.xml.XmlBeanDefinitionReader;
-import com.kewen.spring.context.ApplicationContext;
 import com.kewen.spring.context.support.AbstractApplicationContext;
-import com.kewen.spring.context.support.ApplicationContextAwareProcessor;
-import com.kewen.spring.context.support.ApplicationListenerDetector;
-import com.kewen.spring.core.ConfigurableEnvironment;
-import com.kewen.spring.core.io.ClassPathResource;
-import com.kewen.spring.core.io.Resource;
-import com.kewen.spring.core.io.ResourceLoader;
 import com.kewen.spring.core.lang.Nullable;
+import com.kewen.spring.web.context.support.ServletContextAwareProcessor;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class XmlWebApplicationContext extends AbstractApplicationContext implements ConfigurableWebApplicationContext {
 

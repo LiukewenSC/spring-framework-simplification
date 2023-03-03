@@ -80,6 +80,7 @@ spring框架学习目的使用
 配置主要是把servletContext的相关东西设置到上下文中，方便后续取用不再使用servlet。
 然后配置制定的ApplicationContextInitializer应用上下文初始化器，并执行初始化（自定义配置上下文）。之后开始刷新操作。
 上下文的刷新操作refresh()反应了启动上下文的全流程。
+
     首先创建beanFactory工厂，创建工厂的方法中会加载beanDefinition定义，beanDefinition保存了需要加载到容器中的实例的一些属性信息，为很重要的实体。
     然后添加系统的BeanPostProcessor到工厂中
     再执行BeanDefinitionRegisterPostProcessor的初始化，因为涉及到BeanDifinition，保证这部分的功能先执行;
@@ -89,11 +90,15 @@ spring框架学习目的使用
     再执行工厂完成的初始化事件，在这里，我们会初始化bean
 
 
+### spring-webmvc
+    主要加载webmvc的9大组件
+
 
 ## todo
     动态代理/切面逻辑
-    注解的注入
     跨模块的classpath:META-INF/spring.handlers解析
+    spring容器刷新过后springmvc又刷新一次，之后再看看咋弄
+    springmvc的初始化应该从上下文监听器执行的，目前监听器功能还未实现，暂时未做
 
 ## 其它
 
