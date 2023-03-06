@@ -110,7 +110,12 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
             return (T)sharedInstance;
         }
 
-        RootBeanDefinition rootBeanDefinition = getMergedBeanDefinition(beanName, getBeanDefinition(beanName));
+        //简单处理，后面要用到BeanDefinition 如果没有获取到的话就直接返回空了
+        BeanDefinition beanDefinition = getBeanDefinition(beanName);
+        if (beanDefinition==null){
+            return null;
+        }
+        RootBeanDefinition rootBeanDefinition = getMergedBeanDefinition(beanName, beanDefinition);
 
         //这儿就会去先初始化依赖的bean，就是配置的在什么bean之后初始化的，，
         // 注意：非注入的bean

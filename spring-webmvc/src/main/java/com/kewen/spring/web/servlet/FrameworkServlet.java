@@ -106,7 +106,6 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
         wac.setEnvironment(getEnvironment());
         wac.setParent(parent);
-        //todo 这里没有写进去
         String configLocation = getContextConfigLocation();
         if (configLocation != null) {
             wac.setConfigLocation(configLocation);
@@ -124,7 +123,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
         wac.setServletContext(getServletContext());
         wac.setServletConfig(getServletConfig());
         //原MVC框架是组装成PropertyValue并从获取的。此处简化与spring获取的方式保持一致，简单
-        wac.setConfigLocation(getServletContext().getInitParameter("contextConfigLocation"));
+        wac.setConfigLocation(getServletConfig().getInitParameter("contextConfigLocation"));
 
         // 这个干嘛的，先不管
         // wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));

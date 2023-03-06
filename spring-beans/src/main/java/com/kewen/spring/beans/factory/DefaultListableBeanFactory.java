@@ -40,7 +40,7 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
 
     @Override
     protected BeanDefinition getBeanDefinition(String beanName) throws BeanDefinitionException {
-        return beanDefinitionMap.get(beanName);
+       return beanDefinitionMap.get(beanName);
     }
 
     @Override
@@ -354,7 +354,19 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory implements C
                 beanNames.add(beanName);
             }
         }
+        // TODO: 2023/3/6 此处需要加入手动注入的bean，手动注入的bean不在beanDefinition中，但是也能够加入bean中
         return beanNames;
+    }
+
+    @Override
+    public <T> Map<String, T> getBeansOfType(Class<T> type, boolean includeNonSingletons, boolean allowEagerInit) throws BeansException {
+        HashMap<String, T> map = new HashMap<>();
+        List<String> beanNamesForType = getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+        for (String beanName : beanNamesForType) {
+            T bean = getBean(beanName);
+            map.put(beanName,bean);
+        }
+        return map;
     }
 
     @Override

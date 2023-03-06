@@ -1,6 +1,7 @@
 package com.kewen.spring.context.support;
 
 import com.kewen.spring.beans.exception.BeansException;
+import com.kewen.spring.beans.factory.AutowireCapableBeanFactory;
 import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
 import com.kewen.spring.beans.factory.DefaultListableBeanFactory;
 import com.kewen.spring.beans.factory.config.BeanFactoryPostProcessor;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -105,6 +107,12 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
 
     public Set<ApplicationListener<?>> getApplicationListeners() {
         return applicationListeners;
+    }
+
+    @Override
+    public AutowireCapableBeanFactory getAutowireCapableBeanFactory() {
+        // TODO: 2023/3/6 需要添加此工厂
+        return null;
     }
 
     @Override
@@ -313,27 +321,52 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
 
     @Override
     public ApplicationContext getParent() {
-        return null;
+        return parent;
     }
 
     @Override
     public Object getBean(String beanName) {
-        return null;
+        return getBeanFactory().getBean(beanName);
     }
 
     @Override
     public <T> T getBean(String beanName, Class<T> clazz) {
-        return null;
+        return getBeanFactory().getBean(beanName,clazz);
     }
 
     @Override
     public <T> T getBean(Class<T> clazz) {
-        return null;
+        return getBeanFactory().getBean(clazz);
+    }
+
+    @Override
+    public boolean containsBeanDefinition(String beanName) {
+        return getBeanFactory().containsBeanDefinition(beanName);
+    }
+
+    @Override
+    public int getBeanDefinitionCount() {
+        return getBeanFactory().getBeanDefinitionCount();
+    }
+
+    @Override
+    public String[] getBeanDefinitionNames() {
+        return getBeanFactory().getBeanDefinitionNames();
+    }
+
+    @Override
+    public List<String> getBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
+        return getBeanFactory().getBeanNamesForType(type, includeNonSingletons, allowEagerInit);
+    }
+
+    @Override
+    public <T> Map<String, T> getBeansOfType(Class<T> type, boolean includeNonSingletons, boolean allowEagerInit) throws BeansException {
+        return getBeanFactory().getBeansOfType(type, includeNonSingletons, allowEagerInit);
     }
 
     @Override
     public boolean containsBean(String beanName) {
-        return false;
+        return getBeanFactory().containsBean(beanName);
     }
 
 

@@ -1,7 +1,9 @@
 package com.kewen.spring.context;
 
+import com.kewen.spring.beans.factory.AutowireCapableBeanFactory;
 import com.kewen.spring.beans.factory.BeanFactory;
 import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
+import com.kewen.spring.beans.factory.ListableBeanFactory;
 import com.kewen.spring.beans.factory.config.BeanFactoryPostProcessor;
 import com.kewen.spring.context.event.ApplicationEventPublisher;
 import com.kewen.spring.core.ConfigurableEnvironment;
@@ -14,7 +16,7 @@ import java.util.List;
  * @author kewen
  * @since 2023-02-05 9:55
  */
-public interface ApplicationContext extends BeanFactory, ApplicationEventPublisher {
+public interface ApplicationContext extends ListableBeanFactory, ApplicationEventPublisher {
 
     String getId();
 
@@ -29,6 +31,8 @@ public interface ApplicationContext extends BeanFactory, ApplicationEventPublish
 
 
     void setConfigLocation(String configLocation);
+
+    AutowireCapableBeanFactory getAutowireCapableBeanFactory();
 
 
 
