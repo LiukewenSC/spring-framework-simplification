@@ -211,13 +211,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
     }
 
     protected Object initializeBean(String beanName, Object bean, @Nullable RootBeanDefinition mbd) {
+        //执行aware，BeanNameAware、BeanClassLoaderAware、BeanFactoryAware
         invokeAwareMethods(beanName, bean);
         Object wrappedBean = bean;
         if (mbd == null || !mbd.isSynthetic()) {
+            // contextAware在此处加载进去的
             wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
         }
 
         try {
+            //初始化InitialBean和init-method方法
             invokeInitMethods(beanName, wrappedBean, mbd);
         }
         catch (Throwable ex) {
