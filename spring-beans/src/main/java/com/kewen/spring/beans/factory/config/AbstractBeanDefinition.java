@@ -53,7 +53,13 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
 
     @Nullable
     private String factoryMethodName;
+    /**
+     * 是否是合成的
+     */
+    private boolean synthetic = false;
 
+    @Nullable
+    private String initMethodName;
 
     public AbstractBeanDefinition() {
 
@@ -205,5 +211,13 @@ public abstract class AbstractBeanDefinition implements BeanDefinition {
     @Override
     public boolean isSingleton() {
         return true;
+    }
+
+    public boolean isSynthetic() {
+        return synthetic;
+    }
+
+    public String getInitMethodName() {
+        return initMethodName;
     }
 }

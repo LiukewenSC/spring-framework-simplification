@@ -34,12 +34,22 @@ public abstract class AbstractBeanFactory extends DefaultSingletonBeanRegistry i
     private final Map<String, RootBeanDefinition> mergedBeanDefinitions = new ConcurrentHashMap<>(256);
 
 
+    private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+
     public BeanFactory getParentBeanFactory() {
         return parentBeanFactory;
     }
 
     public void setParentBeanFactory(BeanFactory parentBeanFactory) {
         this.parentBeanFactory = parentBeanFactory;
+    }
+
+    public ClassLoader getBeanClassLoader() {
+        return beanClassLoader;
+    }
+
+    public void setBeanClassLoader(ClassLoader beanClassLoader) {
+        this.beanClassLoader = beanClassLoader;
     }
 
     @Override

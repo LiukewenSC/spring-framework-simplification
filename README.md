@@ -97,7 +97,9 @@ spring框架学习目的使用
 ## todo
     动态代理/切面逻辑
     bean的自动注入ByType注入暂未实现
-    扩展函数 Aware、InitializingBean、
+    (03-27 ok)扩展函数 Aware、InitializingBean、init-method
+    @PostConstruct
+    ApplicationContextAware
     跨模块的classpath:META-INF/spring.handlers解析
     spring容器刷新过后springmvc又刷新一次，之后再看看咋弄
     springmvc的初始化应该从上下文监听器执行的，目前监听器功能还未实现，暂时未做
