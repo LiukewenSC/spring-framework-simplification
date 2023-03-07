@@ -32,6 +32,7 @@ import java.util.Set;
 /**
  * @descrpition  上下文抽象类
  *         此类完成大部分applicationContext逻辑，特别重要的类
+ *         整合了原框架 AbstractApplicationContext 和 子类AbstractRefreshableApplicationContext
  * @author kewen
  * @since 2023-02-07
  */
@@ -111,8 +112,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
 
     @Override
     public AutowireCapableBeanFactory getAutowireCapableBeanFactory() {
-        // TODO: 2023/3/6 需要添加此工厂
-        return null;
+        return getBeanFactory();
     }
 
     @Override

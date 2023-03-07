@@ -1,5 +1,6 @@
 package com.kewen.spring.context;
 
+import com.kewen.spring.beans.factory.ConfigurableListableBeanFactory;
 import com.kewen.spring.beans.factory.config.BeanFactoryPostProcessor;
 import com.kewen.spring.core.ConfigurableEnvironment;
 import com.kewen.spring.core.lang.Nullable;
@@ -33,4 +34,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext {
     void addBeanFactoryPostProcessor(BeanFactoryPostProcessor postProcessor);
 
     void refresh() ;
+
+    ConfigurableListableBeanFactory getBeanFactory() throws IllegalStateException;
+
 }
