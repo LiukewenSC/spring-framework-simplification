@@ -5,6 +5,7 @@ import com.kewen.spring.beans.BeanWrapper;
 import com.kewen.spring.beans.BeanWrapperImpl;
 import com.kewen.spring.beans.MutablePropertyValues;
 import com.kewen.spring.beans.PropertyValues;
+import com.kewen.spring.beans.exception.BeanDefinitionException;
 import com.kewen.spring.beans.exception.BeansException;
 import com.kewen.spring.beans.factory.AutowireCapableBeanFactory;
 import com.kewen.spring.beans.factory.Aware;
@@ -14,6 +15,7 @@ import com.kewen.spring.beans.factory.BeanFactoryAware;
 import com.kewen.spring.beans.factory.BeanNameAware;
 import com.kewen.spring.beans.factory.InitializingBean;
 import com.kewen.spring.beans.factory.SmartInstantiationAwareBeanPostProcessor;
+import com.kewen.spring.beans.factory.config.BeanDefinition;
 import com.kewen.spring.beans.factory.config.BeanPostProcessor;
 import com.kewen.spring.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import com.kewen.spring.beans.factory.config.RootBeanDefinition;
@@ -36,6 +38,12 @@ import java.util.TreeSet;
 public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFactory implements AutowireCapableBeanFactory {
 
     private boolean allowCircularReferences = true;
+
+    @Override
+    public <T> T createBean(Class<T> beanClass) throws BeansException {
+        RootBeanDefinition bd = new RootBeanDefinition(beanClass);
+        return (T) createBean(beanClass.getName(), bd, null);
+    }
 
     @Override
     protected Object createBean(String beanName, RootBeanDefinition mbd, Object[] args) throws BeansException {
@@ -249,7 +257,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
     }
 
-    private Object applyBeanPostProcessorsBeforeInitialization(Object wrappedBean, String beanName) {
+    public Object applyBeanPostProcessorsBeforeInitialization(Object wrappedBean, String beanName) {
         List<BeanPostProcessor> beanPostProcessors = getBeanPostProcessors();
         if (beanPostProcessors !=null){
             for (BeanPostProcessor beanPostProcessor : beanPostProcessors) {
