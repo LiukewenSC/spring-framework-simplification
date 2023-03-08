@@ -39,13 +39,12 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
         initHandlerMethods();
     }
     protected void initHandlerMethods() {
-        Map<String, Object> beansOfType = applicationContext.getBeansOfType(Object.class, true, false);
+        Map<String, Object> beansOfType = obtainApplicationContext().getBeansOfType(Object.class, true, false);
         for (Object bean : beansOfType.values()) {
             if (isHandler(bean.getClass())) {
                 detectHandlerMethods(bean);
             }
         }
-        // TODO: 2023/3/7 handlerMethodsInitialized(getHandlerMethods());
     }
 
     private void detectHandlerMethods(Object handler) {
@@ -88,21 +87,21 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
     /**
      * 获取控制器对应的方法。
      * 此处改了大量的逻辑，原框架十分复杂，最终结果是得到方法对应的映射
-     * @param handlerType
+     * @param clazz
      * @return
      */
-    private Map<Method, RequestMappingInfo> selectMethods( Class<?> handlerType ){
+    private Map<Method, RequestMappingInfo> selectMethods( Class<?> clazz ){
         String prefix="";
-        RequestMapping requestMapping = handlerType.getAnnotation(RequestMapping.class);
+        RequestMapping requestMapping = clazz.getAnnotation(RequestMapping.class);
         if (requestMapping !=null){
             prefix = requestMapping.value();
         }
-        Map<Method, RequestMappingInfo> map = new HashMap<>(handlerType.getMethods().length);
-        for (Method method : handlerType.getMethods()) {
+        Map<Method, RequestMappingInfo> map = new HashMap<>(clazz.getMethods().length);
+        for (Method method : clazz.getMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)){
                 String value = method.getAnnotation(RequestMapping.class).value();
                 RequestMappingInfo info = new RequestMappingInfo(
-                        handlerType.getName(),
+                        clazz.getName(),
                         new PatternsRequestCondition(prefix + value)
                 );
                 map.put(method,info);
@@ -111,14 +110,29 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
         return map;
     }
 
+    /**
+     * 判断是否是Controller对应的控制器
+     * @param beanClass
+     * @return
+     */
     private boolean isHandler(Class beanClass){
         List<Annotation> annotations = AnnotationUtil.scanClass(beanClass);
         for (Annotation annotation : annotations) {
-            if (annotation.annotationType()==Controller.class){
+            boolean hasControllerLoop = hasControllerLoop(annotation);
+            if (hasControllerLoop){
                 return true;
             }
-            List<Annotation> metaAnnotation = AnnotationUtil.scanMetaAnnotation(annotation.annotationType());
-            if (metaAnnotation.contains(Controller.class)) {
+        }
+        return false;
+    }
+    private boolean hasControllerLoop(Annotation annotation){
+        if (annotation.annotationType()== Controller.class){
+            return true;
+        }
+        List<Annotation> metaAnnotation = AnnotationUtil.scanMetaAnnotation(annotation.annotationType());
+        for (Annotation sub : metaAnnotation) {
+            boolean hasController = hasControllerLoop(sub);
+            if (hasController){
                 return true;
             }
         }
@@ -148,6 +162,9 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
         }
         private List<String> getDirectUrls(RequestMappingInfo mapping) {
             return new ArrayList<>(mapping.getPatternsCondition().getPatterns());
+        }
+        private Map<RequestMappingInfo, HandlerMethod> getMappings(){
+            return mappingLookup;
         }
     }
     protected HandlerMethod createHandlerMethod(Object handler, Method method) {

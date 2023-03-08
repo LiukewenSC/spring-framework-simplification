@@ -9,11 +9,10 @@ import java.lang.annotation.Target;
 /**
  * @descrpition 
  * @author kewen
- * @since 2023-03-07
+ * @since 2023-03-08
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface RequestMapping {
-    String value();
+public @interface ResponseBody {
 }
