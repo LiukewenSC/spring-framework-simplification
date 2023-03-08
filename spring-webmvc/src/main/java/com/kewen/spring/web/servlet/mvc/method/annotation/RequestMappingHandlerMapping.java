@@ -11,6 +11,7 @@ import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.web.bind.annotation.RequestMapping;
 import com.kewen.spring.web.method.HandlerMethod;
 import com.kewen.spring.web.servlet.HandlerExecutionChain;
+import com.kewen.spring.web.servlet.HandlerInterceptor;
 import com.kewen.spring.web.servlet.HandlerMapping;
 import com.kewen.spring.web.servlet.handler.AbstractHandlerMapping;
 import com.kewen.spring.web.servlet.mvc.condition.PatternsRequestCondition;
@@ -146,6 +147,11 @@ public class RequestMappingHandlerMapping extends AbstractHandlerMapping impleme
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext=applicationContext;
+        //todo 从标签中注入进来的，这里简化以下直接从容器中带进来
+        Map<String, HandlerInterceptor> beansOfType = applicationContext.getBeansOfType(HandlerInterceptor.class, true, false);
+        if (beansOfType !=null){
+            this.adaptedInterceptors.addAll(beansOfType.values());
+        }
     }
 
 

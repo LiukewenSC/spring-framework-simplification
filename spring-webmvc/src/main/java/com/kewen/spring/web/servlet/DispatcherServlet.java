@@ -9,6 +9,7 @@ import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.ClassUtils;
 
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -209,16 +210,45 @@ public class DispatcherServlet extends FrameworkServlet {
 
     }
 
-    protected void doDispatch(HttpServletRequest request, HttpServletResponse response) {
+    protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
         HandlerExecutionChain mappedHandler = null;
+        Exception ex = null;
         try {
             mappedHandler = getHandler(request);
 
+            if (mappedHandler==null){
+                //直接返回了
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+            HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+
+
+            //对于GET和HEAD请求，此处做了一次查询缓存，先不管
+
+
+            //执行拦截器前置处理，执行pre方法，未通过则结束
+            if (!mappedHandler.applyPreHandle(request, response)) {
+                return;
+            }
+
+
+            //执行请求方法
+            ModelAndView mv = ha.handle(request, response, mappedHandler.getHandler());
+
+
+
+            //执行拦截器后置处理
+            mappedHandler.applyPostHandle(request, response, mv);
+
+
+
 
         } catch (Exception e){
-
+            ex=e;
         }finally {
-
+            //简化处理，直接在finally中执行，原框架是分别在几个地方处理的，干嘛那么麻烦呢
+            mappedHandler.triggerAfterCompletion(request,response,ex);
         }
 
     }
@@ -234,5 +264,15 @@ public class DispatcherServlet extends FrameworkServlet {
         }
         return null;
     }
-
+    protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
+        if (this.handlerAdapters != null) {
+            for (HandlerAdapter adapter : this.handlerAdapters) {
+                if (adapter.supports(handler)) {
+                    return adapter;
+                }
+            }
+        }
+        throw new ServletException("No adapter for handler [" + handler +
+                "]: The DispatcherServlet configuration needs to include a HandlerAdapter that supports this handler");
+    }
 }

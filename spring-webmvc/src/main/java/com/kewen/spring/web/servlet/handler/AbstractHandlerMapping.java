@@ -1,5 +1,8 @@
 package com.kewen.spring.web.servlet.handler;
 
+import com.kewen.spring.beans.exception.BeansException;
+import com.kewen.spring.context.ApplicationContext;
+import com.kewen.spring.context.ApplicationContextAware;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.web.servlet.HandlerExecutionChain;
 import com.kewen.spring.web.servlet.HandlerInterceptor;
@@ -8,17 +11,18 @@ import com.kewen.spring.web.servlet.HandlerMapping;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @descrpition 抽象的映射器
  * @author kewen
  * @since 2023-03-08
  */
-public abstract class AbstractHandlerMapping implements HandlerMapping {
+public abstract class AbstractHandlerMapping implements HandlerMapping  {
     @Nullable
     private Object defaultHandler;
     /**
-     * todo 有两个MappedInterceptor，从标签中注入进来的，先写死不管（是不是可以简化以下直接从容器中带进来）
+     * todo 从标签中注入进来的，这里简化以下直接从容器中带进来，见RequestMappingHandlerMapping的setApplication接口
      *     <mvc:interceptors>
      *         <bean class="com.kewen.interceptor.GlobalInterceptor"/>
      *
@@ -28,10 +32,9 @@ public abstract class AbstractHandlerMapping implements HandlerMapping {
      *         </mvc:interceptor>
      *     </mvc:interceptors>
      */
-    private final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<HandlerInterceptor>(){{
-        add(new MappedInterceptor(null));
-        add(new MappedInterceptor(null));
-    }};
+    protected final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<>();
+
+
     @Override
     public HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
         //根据请求获取Handler
