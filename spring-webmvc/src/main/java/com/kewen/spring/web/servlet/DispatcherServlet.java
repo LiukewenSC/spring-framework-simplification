@@ -9,6 +9,8 @@ import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.ClassUtils;
 
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +72,8 @@ public class DispatcherServlet extends FrameworkServlet {
     protected void onRefresh(ApplicationContext wac) {
         initStrategies(wac);
     }
+
+
     protected void initStrategies(ApplicationContext context) {
         //文件上传组件，先不管
         initMultipartResolver(context);
@@ -178,4 +182,57 @@ public class DispatcherServlet extends FrameworkServlet {
     private void initFlashMapManager(ApplicationContext context) {
 
     }
+
+
+
+    /*--------------------------------------执行方法-------------------------------------------*/
+
+
+
+
+    @Override
+    protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //记录请求，先不管
+        logRequest(request);
+
+        //设置request属性，方便后续在request上拿去，先不管
+
+
+        //
+        try {
+            doDispatch(request,response);
+        } finally {
+            //重置Request中的请求，先不=管
+        }
+    }
+    private void logRequest(HttpServletRequest request) {
+
+    }
+
+    protected void doDispatch(HttpServletRequest request, HttpServletResponse response) {
+        HandlerExecutionChain mappedHandler = null;
+        try {
+            mappedHandler = getHandler(request);
+
+
+        } catch (Exception e){
+
+        }finally {
+
+        }
+
+    }
+    @Nullable
+    protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+        if (this.handlerMappings != null) {
+            for (HandlerMapping mapping : this.handlerMappings) {
+                HandlerExecutionChain handler = mapping.getHandler(request);
+                if (handler != null) {
+                    return handler;
+                }
+            }
+        }
+        return null;
+    }
+
 }

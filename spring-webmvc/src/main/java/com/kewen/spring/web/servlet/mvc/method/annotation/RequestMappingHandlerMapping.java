@@ -7,12 +7,16 @@ import com.kewen.spring.beans.factory.InitializingBean;
 import com.kewen.spring.context.ApplicationContext;
 import com.kewen.spring.context.ApplicationContextAware;
 import com.kewen.spring.context.annotation.Controller;
+import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.web.bind.annotation.RequestMapping;
 import com.kewen.spring.web.method.HandlerMethod;
+import com.kewen.spring.web.servlet.HandlerExecutionChain;
 import com.kewen.spring.web.servlet.HandlerMapping;
+import com.kewen.spring.web.servlet.handler.AbstractHandlerMapping;
 import com.kewen.spring.web.servlet.mvc.condition.PatternsRequestCondition;
 import com.kewen.spring.web.servlet.mvc.method.RequestMappingInfo;
 
+import javax.servlet.http.HttpServletRequest;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -30,7 +34,7 @@ import java.util.stream.Collectors;
  * @descrpition
  * @since 2023-03-06
  */
-public class RequestMappingHandlerMapping implements HandlerMapping, ApplicationContextAware,InitializingBean {
+public class RequestMappingHandlerMapping extends AbstractHandlerMapping implements ApplicationContextAware,InitializingBean {
 
     ApplicationContext applicationContext;
     private final MappingRegistry mappingRegistry = new MappingRegistry();
@@ -144,6 +148,7 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
         this.applicationContext=applicationContext;
     }
 
+
     private class MappingRegistry {
         private final Map<RequestMappingInfo, HandlerMethod> mappingLookup = new LinkedHashMap<>();
         private final HashMap<String, RequestMappingInfo> urlLookup = new LinkedHashMap();
@@ -166,6 +171,11 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
         private Map<RequestMappingInfo, HandlerMethod> getMappings(){
             return mappingLookup;
         }
+        @Nullable
+        public RequestMappingInfo getMappingsByUrl(String urlPath) {
+            return this.urlLookup.get(urlPath);
+        }
+
     }
     protected HandlerMethod createHandlerMethod(Object handler, Method method) {
         return new HandlerMethod(handler, method);
@@ -174,4 +184,34 @@ public class RequestMappingHandlerMapping implements HandlerMapping, Application
     private ApplicationContext obtainApplicationContext() {
         return applicationContext;
     }
+
+
+
+
+
+
+
+    @Override
+    protected Object getHandlerInternal(HttpServletRequest request) throws Exception {
+        //原框架又抽象了几个类，不管了，就这样
+        String lookupPath = request.getRequestURI();
+        HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
+        //原框架有处理HandlerMethod保存的对象为string的情况，暂不考虑
+        return handlerMethod;
+    }
+
+    /**
+     * 找到匹配的处理方法，原框架有复杂的逻辑处理并找取最优的，这里直接单个处理了
+     * 同时从 mappingRegistry Map<RequestMappingInfo, HandlerMethod>  中获取HandlerMethod也简化了
+     * @return
+     */
+    private HandlerMethod lookupHandlerMethod(String lookupPath, HttpServletRequest request) {
+        RequestMappingInfo mappingsByUrl = mappingRegistry.getMappingsByUrl(lookupPath);
+        HandlerMethod handlerMethod = mappingRegistry.getMappings().get(mappingsByUrl);
+        return handlerMethod;
+
+
+    }
+
+
 }
