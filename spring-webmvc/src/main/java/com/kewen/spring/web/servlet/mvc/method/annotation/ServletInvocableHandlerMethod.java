@@ -10,6 +10,7 @@ import com.kewen.spring.web.method.support.HandlerMethodArgumentResolverComposit
 import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandlerComposite;
 import com.kewen.spring.web.method.support.ModelAndViewContainer;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -51,7 +52,11 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
         this.returnValueHandlers=returnValueHandlers;
     }
 
-    public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,Object... providedArgs) throws Exception {
+    public void setDataBinderFactory(WebDataBinderFactory dataBinderFactory) {
+        this.dataBinderFactory = dataBinderFactory;
+    }
+
+    public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
         Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
         setResponseStatus(webRequest);
     }
@@ -65,8 +70,12 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
     }
 
     private Object doInvoke(Object[] args) {
-        // TODO: 2023/3/8 执行方法
-        return null;
+        //没啥东西，就是处理了很多异常信息提示
+        try {
+            return getMethod().invoke(getBean(),args);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -74,11 +83,11 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
      */
     protected Object[] getMethodArgumentValues(NativeWebRequest request, @Nullable ModelAndViewContainer mavContainer,
                                                Object... providedArgs) throws Exception {
-        if (providedArgs==null ||providedArgs.length==0){
+
+        MethodParameter[] parameters = getMethodParameters();
+        if (parameters==null ||parameters.length==0){
             return new Object[0];
         }
-        // TODO: 2023/3/8 后续处理还没有做，很复杂的
-        MethodParameter[] parameters = getMethodParameters();
         Object[] args = new Object[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             MethodParameter parameter = parameters[i];

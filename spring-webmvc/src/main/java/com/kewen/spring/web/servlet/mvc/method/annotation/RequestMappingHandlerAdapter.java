@@ -1,8 +1,12 @@
 package com.kewen.spring.web.servlet.mvc.method.annotation;
 
+import com.kewen.spring.beans.factory.ConfigurableBeanFactory;
+import com.kewen.spring.beans.factory.InitializingBean;
 import com.kewen.spring.core.lang.Nullable;
+import com.kewen.spring.web.bind.support.WebDataBinderFactory;
 import com.kewen.spring.web.context.request.ServletWebRequest;
 import com.kewen.spring.web.method.HandlerMethod;
+import com.kewen.spring.web.method.support.HandlerMethodArgumentResolver;
 import com.kewen.spring.web.method.support.HandlerMethodArgumentResolverComposite;
 import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandlerComposite;
 import com.kewen.spring.web.method.support.ModelAndViewContainer;
@@ -13,17 +17,39 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author kewen
  * @descrpition
  * @since 2023-03-06
  */
-public class RequestMappingHandlerAdapter implements HandlerAdapter {
+public class RequestMappingHandlerAdapter implements HandlerAdapter, InitializingBean {
+    @Nullable
+    private ConfigurableBeanFactory beanFactory;
     @Nullable
     private HandlerMethodArgumentResolverComposite argumentResolvers;
     @Nullable
     private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
+
+    @Nullable
+    WebDataBinderFactory dataBinderFactory;
+    /**
+     * 获取默认的参数解析器
+     * @return
+     */
+    private List<HandlerMethodArgumentResolver> getDefaultArgumentResolvers() {
+
+        List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>(30);
+
+        resolvers.add(new RequestParamMethodArgumentResolver(beanFactory, false));
+
+        //还有很多默认的，后续添加进来
+
+        resolvers.add(new RequestParamMethodArgumentResolver(beanFactory, true));
+        return resolvers;
+    }
 
     @Override
     public boolean supports(Object handler) {
@@ -83,6 +109,9 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
         if (this.returnValueHandlers != null) {
             invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
         }
+        if (this.dataBinderFactory !=null){
+            invocableMethod.setDataBinderFactory(this.dataBinderFactory);
+        }
         ModelAndViewContainer mavContainer = new ModelAndViewContainer();
 
         //执行方法
@@ -90,5 +119,15 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter {
 
         return null;
 
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        List<HandlerMethodArgumentResolver> defaultArgumentResolvers = getDefaultArgumentResolvers();
+        HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
+        composite.addResolvers(defaultArgumentResolvers);
+        this.argumentResolvers=composite;
+        //此处简化了操作，原逻辑并非在这里
+        this.dataBinderFactory=new WebDataBinderFactory();
     }
 }
