@@ -3,11 +3,7 @@ package com.kewen.spring.core;
 import com.kewen.spring.core.lang.Nullable;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 
 /**
  * @descrpition 方法参数
@@ -26,6 +22,9 @@ public class MethodParameter {
      * 参数位置索引0开始
      */
     private final int parameterIndex;
+
+    @Nullable
+    private volatile String parameterName;
 
     /**
      * 参数值
@@ -91,6 +90,23 @@ public class MethodParameter {
     public int getParameterIndex() {
         return this.parameterIndex;
     }
+    public String getParameterName(){
+
+        //此处需要使用ASM框架来反射获取到参数名，里面的东西涉及到一个框架，就不研究了，参数还是老老实实加上@RequestParam，从里面取
+        if (this.parameterName ==null) {
+            if (this.executable instanceof Method) {
+                Method method = (Method) this.executable;
+                Parameter[] parameters = method.getParameters();
+                this.parameterName = parameters[getParameterIndex()].getName();
+            }
+            else if (this.executable instanceof Constructor) {
+                Constructor<?> constructor = (Constructor<?>) this.executable;
+                Parameter[] parameters = constructor.getParameters();
+                this.parameterName = parameters[getParameterIndex()].getName();
+            }
+        }
+        return this.parameterName;
+    }
     public Class<?> getParameterType() {
         Class<?> paramType = this.parameterType;
         if (paramType != null) {
@@ -104,5 +120,44 @@ public class MethodParameter {
     }
     private Class<?> computeParameterType() {
         return this.executable.getParameterTypes()[this.parameterIndex];
+    }
+    public MethodParameter nestedIfOptional() {
+        //此处是查内嵌的，这里就简化不查了，直接返回当前对象，目的是初始化parameter
+        //return (getParameterType() == Optional.class ? nested() : this);
+        getParameter();
+        return this;
+    }
+    public Class<?> getNestedParameterType() {
+        if (this.nestingLevel > 1) {
+           //此处有内嵌层级大于1的逻辑，不管先
+            throw new RuntimeException("");
+        }
+        else {
+            return getParameterType();
+        }
+    }
+
+    public <A extends Annotation> boolean hasParameterAnnotation(Class<A> annotationType) {
+        return (getParameterAnnotation(annotationType) != null);
+    }
+    @Nullable
+    public <A extends Annotation> A getParameterAnnotation(Class<A> annotationType) {
+        Annotation[] anns = getParameterAnnotations();
+        for (Annotation ann : anns) {
+            if (annotationType.isInstance(ann)) {
+                return (A) ann;
+            }
+        }
+        return null;
+    }
+    public Annotation[] getParameterAnnotations() {
+        Annotation[] paramAnns = this.parameterAnnotations;
+        if (paramAnns == null) {
+            Annotation[][] annotationArray = this.executable.getParameterAnnotations();
+            int index = this.parameterIndex;
+            paramAnns = annotationArray[index];
+            this.parameterAnnotations = paramAnns;
+        }
+        return paramAnns;
     }
 }

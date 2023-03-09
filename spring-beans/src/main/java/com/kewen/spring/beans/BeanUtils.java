@@ -6,12 +6,18 @@ import cn.hutool.core.util.ObjectUtil;
 import com.kewen.spring.beans.exception.BeanInstantiationException;
 import com.kewen.spring.beans.factory.BeanFactory;
 import com.kewen.spring.core.util.Assert;
+import com.kewen.spring.core.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.net.URL;
+import java.time.temporal.Temporal;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class BeanUtils {
@@ -74,5 +80,27 @@ public class BeanUtils {
     public static <T> T instantiateClass(Class<?> clazz, Class<T> assignableTo) throws BeanInstantiationException {
         Assert.isAssignable(assignableTo, clazz);
         return (T) instantiateClass(clazz);
+    }
+
+    /**
+     * 是否是简单对象，如String,包装类，等
+     * @param type
+     * @return
+     */
+    public static boolean isSimpleProperty(Class<?> type) {
+        return isSimpleValueType(type) || (type.isArray() && isSimpleValueType(type.getComponentType()));
+    }
+    public static boolean isSimpleValueType(Class<?> type) {
+        return (Void.class != type && void.class != type &&
+                (ClassUtils.isPrimitiveOrWrapper(type) ||
+                        Enum.class.isAssignableFrom(type) ||
+                        CharSequence.class.isAssignableFrom(type) ||
+                        Number.class.isAssignableFrom(type) ||
+                        Date.class.isAssignableFrom(type) ||
+                        Temporal.class.isAssignableFrom(type) ||
+                        URI.class == type ||
+                        URL.class == type ||
+                        Locale.class == type ||
+                        Class.class == type));
     }
 }
