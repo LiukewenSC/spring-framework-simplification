@@ -1,5 +1,6 @@
 package com.kewen.spring.core;
 
+import cn.hutool.core.util.ReflectUtil;
 import com.kewen.spring.core.lang.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -30,6 +31,9 @@ public class MethodParameter {
      * 参数位置索引0开始
      */
     private final int parameterIndex;
+
+    @Nullable
+    private volatile String parameterName;
 
     /**
      * 参数值
@@ -94,6 +98,23 @@ public class MethodParameter {
     }
     public int getParameterIndex() {
         return this.parameterIndex;
+    }
+    public String getParameterName(){
+
+        //此处需要使用ASM框架来反射获取到参数名，里面的东西涉及到一个框架，就不研究了，参数还是老老实实加上@RequestParam，从里面取
+        if (this.parameterName ==null) {
+            if (this.executable instanceof Method) {
+                Method method = (Method) this.executable;
+                Parameter[] parameters = method.getParameters();
+                this.parameterName = parameters[getParameterIndex()].getName();
+            }
+            else if (this.executable instanceof Constructor) {
+                Constructor<?> constructor = (Constructor<?>) this.executable;
+                Parameter[] parameters = constructor.getParameters();
+                this.parameterName = parameters[getParameterIndex()].getName();
+            }
+        }
+        return this.parameterName;
     }
     public Class<?> getParameterType() {
         Class<?> paramType = this.parameterType;
