@@ -17,6 +17,10 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 
     private final List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
 
+    public HandlerMethodReturnValueHandlerComposite(List<HandlerMethodReturnValueHandler> returnValueHandlers) {
+        this.returnValueHandlers.addAll(returnValueHandlers);
+    }
+
     public List<HandlerMethodReturnValueHandler> getHandlers() {
         return Collections.unmodifiableList(this.returnValueHandlers);
     }

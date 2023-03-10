@@ -23,6 +23,7 @@ public class RequestMappingController {
         return "hello RequestMappingController";
     }
     @RequestMapping("/hello2")
+    @ResponseBody
     public String hello2(@RequestParam("name") String name,@RequestParam("age") Integer age){
         return "success + "+name+ ":" +age;
     }

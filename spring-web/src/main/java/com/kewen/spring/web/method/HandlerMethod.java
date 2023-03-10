@@ -1,6 +1,8 @@
 package com.kewen.spring.web.method;
 
 import com.kewen.spring.core.MethodParameter;
+import com.kewen.spring.core.lang.Nullable;
+import com.kewen.spring.http.HttpStatus;
 
 import java.lang.reflect.Method;
 
@@ -12,6 +14,11 @@ import java.lang.reflect.Method;
 public class HandlerMethod {
     protected Object bean;
     protected Method method;
+
+    @Nullable
+    private HttpStatus responseStatus;
+    @Nullable
+    private String responseStatusReason;
     private final MethodParameter[] parameters;
 
     public HandlerMethod(Object bean, Method method) {
@@ -44,9 +51,44 @@ public class HandlerMethod {
     public MethodParameter[] getMethodParameters() {
         return this.parameters;
     }
+
+    public String getResponseStatusReason() {
+        return responseStatusReason;
+    }
+
+    public HttpStatus getResponseStatus() {
+        return responseStatus;
+    }
+
+    public MethodParameter getReturnValueType(@Nullable Object returnValue) {
+        return new ReturnValueMethodParameter(returnValue);
+    }
+
+    /**
+     * 方法参数处理器
+     */
     private class HandlerMethodParameter extends MethodParameter{
         public HandlerMethodParameter(int index) {
             super(HandlerMethod.this.method, index);
+        }
+    }
+
+    /**
+     * 记录返回值的HandlerMethod
+     */
+    private class ReturnValueMethodParameter extends HandlerMethodParameter {
+
+        @Nullable
+        private final Object returnValue;
+
+        public ReturnValueMethodParameter(@Nullable Object returnValue) {
+            super(-1);
+            this.returnValue = returnValue;
+        }
+
+        @Override
+        public Class<?> getParameterType() {
+            return (this.returnValue != null ? this.returnValue.getClass() : super.getParameterType());
         }
     }
 }

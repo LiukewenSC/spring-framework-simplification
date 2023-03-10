@@ -2,6 +2,8 @@ package com.kewen.spring.web.servlet.mvc.method.annotation;
 
 import com.kewen.spring.core.MethodParameter;
 import com.kewen.spring.core.lang.Nullable;
+import com.kewen.spring.core.util.StringUtils;
+import com.kewen.spring.http.HttpStatus;
 import com.kewen.spring.web.bind.support.WebDataBinderFactory;
 import com.kewen.spring.web.context.request.NativeWebRequest;
 import com.kewen.spring.web.context.request.ServletWebRequest;
@@ -10,6 +12,8 @@ import com.kewen.spring.web.method.support.HandlerMethodArgumentResolverComposit
 import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandlerComposite;
 import com.kewen.spring.web.method.support.ModelAndViewContainer;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -29,7 +33,7 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
     /**
      * 返回值解析器
      */
-    private HandlerMethodReturnValueHandlerComposite returnValueHandlers = new HandlerMethodReturnValueHandlerComposite();
+    private HandlerMethodReturnValueHandlerComposite returnValueHandlers ;
     /**
      * 数据绑定工厂
      */
@@ -58,7 +62,24 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
 
     public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer, Object... providedArgs) throws Exception {
         Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+        //如果有异常，则在request中设置异常状态码
         setResponseStatus(webRequest);
+
+        //数据为空则判定是否需要返回了
+        if (returnValue ==null){
+            if (getResponseStatus() !=null && mavContainer.isRequestHandled()){
+                return;
+            }
+        } else if (StringUtils.hasText(getResponseStatusReason())) {
+            //异常也需要返回
+            mavContainer.setRequestHandled(true);
+            return;
+        }
+        //设置为为执行完请求
+        mavContainer.setRequestHandled(false);
+        this.returnValueHandlers.handleReturnValue(
+                returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
+
     }
 
 
@@ -105,7 +126,28 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
         return args;
 
     }
-    private void setResponseStatus(ServletWebRequest webRequest) {
 
+    /**
+     * 如果有异常，则设置异常在返回中
+     */
+    private void setResponseStatus(ServletWebRequest webRequest) throws IOException {
+        HttpStatus status = getResponseStatus();
+        if (status == null) {
+            return;
+        }
+
+        HttpServletResponse response = webRequest.getResponse();
+        if (response != null) {
+            String reason = getResponseStatusReason();
+            if (StringUtils.hasText(reason)) {
+                response.sendError(status.value(), reason);
+            }
+            else {
+                response.setStatus(status.value());
+            }
+        }
+
+        // To be picked up by RedirectView
+        //webRequest.getRequest().setAttribute(View.RESPONSE_STATUS_ATTRIBUTE, status);
     }
 }

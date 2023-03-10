@@ -11,7 +11,7 @@ import com.kewen.spring.web.context.request.NativeWebRequest;
  */
 public interface HandlerMethodReturnValueHandler {
 
-    boolean supportsReturnType(MethodParameter returnType);
+    boolean supportsReturnType(MethodParameter parameter);
 
 
     void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,

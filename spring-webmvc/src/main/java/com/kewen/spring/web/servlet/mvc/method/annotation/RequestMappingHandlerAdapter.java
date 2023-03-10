@@ -1,13 +1,21 @@
 package com.kewen.spring.web.servlet.mvc.method.annotation;
 
+import com.kewen.spring.beans.exception.BeansException;
+import com.kewen.spring.beans.factory.BeanFactory;
+import com.kewen.spring.beans.factory.BeanFactoryAware;
 import com.kewen.spring.beans.factory.ConfigurableBeanFactory;
 import com.kewen.spring.beans.factory.InitializingBean;
+import com.kewen.spring.context.ApplicationContext;
+import com.kewen.spring.context.ApplicationContextAware;
 import com.kewen.spring.core.lang.Nullable;
+import com.kewen.spring.http.converter.HttpMessageConverter;
+import com.kewen.spring.http.converter.StringHttpMessageConverter;
 import com.kewen.spring.web.bind.support.WebDataBinderFactory;
 import com.kewen.spring.web.context.request.ServletWebRequest;
 import com.kewen.spring.web.method.HandlerMethod;
 import com.kewen.spring.web.method.support.HandlerMethodArgumentResolver;
 import com.kewen.spring.web.method.support.HandlerMethodArgumentResolverComposite;
+import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandler;
 import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandlerComposite;
 import com.kewen.spring.web.method.support.ModelAndViewContainer;
 import com.kewen.spring.web.servlet.HandlerAdapter;
@@ -15,23 +23,32 @@ import com.kewen.spring.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author kewen
  * @descrpition
  * @since 2023-03-06
  */
-public class RequestMappingHandlerAdapter implements HandlerAdapter, InitializingBean {
+public class RequestMappingHandlerAdapter implements HandlerAdapter, BeanFactoryAware,ApplicationContextAware, InitializingBean {
+    @Nullable
+    private ApplicationContext applicationContext;
     @Nullable
     private ConfigurableBeanFactory beanFactory;
     @Nullable
     private HandlerMethodArgumentResolverComposite argumentResolvers;
     @Nullable
     private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
+
+    private List<HttpMessageConverter<?>> messageConverters;
+
+    private final  List<RequestBodyAdvice<Object>> requestBodyAdvices = new ArrayList<>();
+    private final  List<ResponseBodyAdvice<Object>> responseBodyAdvices = new ArrayList<>();
 
     @Nullable
     WebDataBinderFactory dataBinderFactory;
@@ -49,6 +66,13 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter, Initializin
 
         resolvers.add(new RequestParamMethodArgumentResolver(beanFactory, true));
         return resolvers;
+    }
+    private List<HandlerMethodReturnValueHandler> getDefaultReturnValueHandler(){
+        List<HandlerMethodReturnValueHandler> returnValueHandlers = new ArrayList<>();
+
+        //@ResponseBody处理，这里稍微和原框架不一样，原框架是把 requestBodyAdvice 和 responseBodyAdvice组合在一起利用List<Object>传入再判定返回,现在就分开，要明确一点
+        returnValueHandlers.add(new RequestResponseBodyMethodProcessor(messageConverters,requestBodyAdvices,responseBodyAdvices));
+        return returnValueHandlers;
     }
 
     @Override
@@ -121,13 +145,50 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter, Initializin
 
     }
 
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        if (beanFactory instanceof ConfigurableBeanFactory){
+            this.beanFactory= ((ConfigurableBeanFactory) beanFactory);
+        }
+    }
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext=applicationContext;
+    }
     @Override
     public void afterPropertiesSet() throws Exception {
+        //初始化原有的
+        initControllerAdviceCache();
+
+        //返回值解析器
+        this.messageConverters=getDefaultMessageConverters();
+
         List<HandlerMethodArgumentResolver> defaultArgumentResolvers = getDefaultArgumentResolvers();
         HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
         composite.addResolvers(defaultArgumentResolvers);
         this.argumentResolvers=composite;
+
         //此处简化了操作，原逻辑并非在这里
         this.dataBinderFactory=new WebDataBinderFactory();
+        //返回值解析前的处理器
+        this.returnValueHandlers=new HandlerMethodReturnValueHandlerComposite(getDefaultReturnValueHandler());
     }
+
+    private List<HttpMessageConverter<?>> getDefaultMessageConverters() {
+        return Arrays.asList(new StringHttpMessageConverter());
+    }
+
+    private void initControllerAdviceCache() {
+
+        //获取对应的ResponseBodyAdvance实现，先凑活着用，后面再改
+        Map<String, ResponseBodyAdvice> beansOfType = applicationContext.getBeansOfType(ResponseBodyAdvice.class, true, false);
+        if (beansOfType !=null){
+            Collection<ResponseBodyAdvice> values = beansOfType.values();
+            for (ResponseBodyAdvice value : values) {
+                this.responseBodyAdvices.add(value);
+            }
+        }
+    }
+
 }
