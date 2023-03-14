@@ -1,6 +1,7 @@
 package com.kewen.spring.http.converter;
 
 import com.alibaba.fastjson.JSONObject;
+import com.kewen.spring.beans.BeanUtils;
 import com.kewen.spring.http.HttpOutputMessage;
 import com.kewen.spring.http.MediaType;
 
@@ -8,21 +9,21 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * @author kewen
+ * @author kewen 对象序列化转换器，序列化为json数据
  * @descrpition
  * @since 2023-03-14
  */
-public class JsonConverter implements HttpMessageConverter<Object>{
+public class JsonConverter extends AbstractHttpMessageConverter<Object>{
+
     @Override
-    public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        return true;
+    protected boolean supports(Class<?> clazz) {
+        return !BeanUtils.isSimpleValueType(clazz);
     }
 
     @Override
-    public void write(Object t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException {
-        OutputStream outputStream = outputMessage.getBody();
-        byte[] bytes = JSONObject.toJSONBytes(t);
+    protected void writeInternal(Object o, HttpOutputMessage httpOutputMessage) throws IOException {
+        OutputStream outputStream = httpOutputMessage.getBody();
+        byte[] bytes = JSONObject.toJSONBytes(o);
         outputStream.write(bytes);
-        outputStream.close();
     }
 }
