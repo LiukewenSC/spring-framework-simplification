@@ -1,6 +1,8 @@
 package com.kewen.spring.http.server;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @descrpition 
@@ -17,5 +19,10 @@ public class ServletServerHttpRequest implements ServerHttpRequest{
 
     public HttpServletRequest getServletRequest() {
         return servletRequest;
+    }
+
+    @Override
+    public InputStream getBody() throws IOException {
+        return servletRequest.getInputStream();
     }
 }

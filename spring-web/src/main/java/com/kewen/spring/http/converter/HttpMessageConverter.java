@@ -3,6 +3,7 @@ package com.kewen.spring.http.converter;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.http.HttpOutputMessage;
 import com.kewen.spring.http.MediaType;
+import com.kewen.spring.http.server.ServletServerHttpRequest;
 import com.kewen.spring.http.server.ServletServerHttpResponse;
 
 import java.io.IOException;
@@ -13,6 +14,11 @@ import java.io.IOException;
  * @since 2023-03-10
  */
 public interface HttpMessageConverter<T> {
+
+    boolean canRead(Class<?> clazz, @Nullable MediaType mediaType);
+    T read(Class<? extends T> clazz, ServletServerHttpRequest inputMessage)
+            throws IOException;
+
     /**
      * 可以写值的
      * @param clazz

@@ -1,5 +1,6 @@
 package com.kewen.spring.web.servlet.mvc.method.annotation;
 
+import cn.hutool.core.io.IoUtil;
 import com.kewen.spring.core.MethodParameter;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.http.MediaType;
@@ -7,11 +8,15 @@ import com.kewen.spring.http.converter.GenericHttpMessageConverter;
 import com.kewen.spring.http.converter.HttpMessageConverter;
 import com.kewen.spring.http.server.ServletServerHttpRequest;
 import com.kewen.spring.http.server.ServletServerHttpResponse;
+import com.kewen.spring.web.context.request.NativeWebRequest;
 import com.kewen.spring.web.method.support.HandlerMethodArgumentResolver;
 import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandler;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,20 +24,55 @@ import java.util.List;
  * @author kewen
  * @since 2023-03-14
  */
-public abstract class AbstractMessageConverterMethodProcessor implements HandlerMethodReturnValueHandler {
+public abstract class AbstractMessageConverterMethodProcessor implements HandlerMethodArgumentResolver, HandlerMethodReturnValueHandler {
 
-    protected final List<HttpMessageConverter<?>> messageConverters;
+    protected final List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
     private final RequestResponseBodyAdviceChain advice;
 
     public AbstractMessageConverterMethodProcessor(List<HttpMessageConverter<?>> messageConverters, RequestResponseBodyAdviceChain advice) {
-        this.messageConverters = messageConverters;
         this.advice = advice;
+        this.messageConverters.addAll(messageConverters);
     }
 
 
-    /*-------------------------------------------------返回写数据-----------------------------------------------*/
+    /*-------------------------------------------------请求读数据-----------------------------------------------*/
+
+    /**
+     * 读取数据 并调用前置后置方法
+     */
+    @Nullable
+    protected <T> Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
+                                                   Type targetType) throws IOException {
+
+        HttpServletRequest httpServletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+        ServletServerHttpRequest inputMessage =new ServletServerHttpRequest(httpServletRequest);
 
 
+        //ContextType相关的处理，不影响主流程,不管
+
+
+        //判定并写数据
+        Class<T> targetClass = (targetType instanceof Class ? (Class<T>) targetType : null);
+        MediaType contentType =null;
+        Object body = null;
+        for (HttpMessageConverter<?> converter : this.messageConverters) {
+
+            Class<HttpMessageConverter<?>> converterType = (Class<HttpMessageConverter<?>>) converter.getClass();
+
+            //判定是否可读，精简了一部分
+            boolean  canRead = converter.canRead(targetClass,contentType);
+            if (canRead){
+                ServletServerHttpRequest toUse = advice.beforeBodyRead(inputMessage, parameter, targetType, converterType);
+
+                body = ((HttpMessageConverter<T>) converter).read(targetClass,toUse);
+
+                body = advice.afterBodyRead(body,inputMessage,parameter,targetType,converterType);
+            }
+
+        }
+        return body;
+
+    }
 
 
 

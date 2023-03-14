@@ -10,8 +10,10 @@ import com.kewen.spring.http.converter.HttpMessageConverter;
 import com.kewen.spring.http.converter.StringHttpMessageConverter;
 import com.kewen.spring.http.server.ServletServerHttpRequest;
 import com.kewen.spring.http.server.ServletServerHttpResponse;
+import com.kewen.spring.web.bind.WebDataBinder;
 import com.kewen.spring.web.bind.annotation.RequestBody;
 import com.kewen.spring.web.bind.annotation.ResponseBody;
+import com.kewen.spring.web.bind.support.WebDataBinderFactory;
 import com.kewen.spring.web.context.request.NativeWebRequest;
 import com.kewen.spring.web.method.annotation.AbstractNamedValueMethodArgumentResolver;
 import com.kewen.spring.web.method.support.HandlerMethodReturnValueHandler;
@@ -46,6 +48,21 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
         super(messageConverters,new RequestResponseBodyAdviceChain(requestBodyAdvice,responseBodyAdvice));
     }
 
+
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+        return parameter.hasParameterAnnotation(RequestBody.class);
+    }
+
+    @Override
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+        Object arg = readWithMessageConverters(webRequest, parameter, parameter.getNestedParameterType());
+        return arg;
+    }
+
+
+
+
     @Override
     public boolean supportsReturnType(MethodParameter parameter) {
         //这里和原来框架不一样，此处更容易理解
@@ -74,8 +91,6 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
         Assert.state(response != null, "No HttpServletResponse");
         return new ServletServerHttpResponse(response);
     }
-
-
 
 
 }

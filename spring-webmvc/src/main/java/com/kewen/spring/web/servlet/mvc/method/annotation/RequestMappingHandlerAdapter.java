@@ -66,7 +66,12 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter, BeanFactory
         //处理@ModelAttribute
         resolvers.add(new ServletModelAttributeMethodProcessor(false));
 
+
         //还有很多默认的，后续添加进来
+        //@RequestBody参数解析器
+        resolvers.add(new RequestResponseBodyMethodProcessor(messageConverters,requestBodyAdvices,responseBodyAdvices));
+
+
         //处理普通入参对象
         resolvers.add(new ServletModelAttributeMethodProcessor(true));
         //处理@RequestParam
@@ -188,11 +193,18 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter, BeanFactory
     private void initControllerAdviceCache() {
 
         //获取对应的ResponseBodyAdvance实现，先凑活着用，后面再改
-        Map<String, ResponseBodyAdvice> beansOfType = applicationContext.getBeansOfType(ResponseBodyAdvice.class, true, false);
-        if (beansOfType !=null){
-            Collection<ResponseBodyAdvice> values = beansOfType.values();
+        Map<String, ResponseBodyAdvice> responseBodyAdviceMap = applicationContext.getBeansOfType(ResponseBodyAdvice.class, true, false);
+        if (responseBodyAdviceMap !=null){
+            Collection<ResponseBodyAdvice> values = responseBodyAdviceMap.values();
             for (ResponseBodyAdvice value : values) {
                 this.responseBodyAdvices.add(value);
+            }
+        }
+        Map<String, RequestBodyAdvice> requestBodyAdviceMap = applicationContext.getBeansOfType(RequestBodyAdvice.class, true, false);
+        if (requestBodyAdviceMap !=null){
+            Collection<RequestBodyAdvice> values = requestBodyAdviceMap.values();
+            for (RequestBodyAdvice value : values) {
+                this.requestBodyAdvices.add(value);
             }
         }
     }

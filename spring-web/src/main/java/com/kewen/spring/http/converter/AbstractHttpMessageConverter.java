@@ -3,6 +3,7 @@ package com.kewen.spring.http.converter;
 import com.kewen.spring.http.HttpHeaders;
 import com.kewen.spring.http.HttpOutputMessage;
 import com.kewen.spring.http.MediaType;
+import com.kewen.spring.http.server.ServletServerHttpRequest;
 
 import java.io.IOException;
 
@@ -17,6 +18,12 @@ public abstract class AbstractHttpMessageConverter<T> implements HttpMessageConv
         //此处实际上还要判断contentType，先就这样
         return supports(clazz);
     }
+
+    @Override
+    public boolean canRead(Class<?> clazz, MediaType mediaType) {
+        return supports(clazz);
+    }
+
     protected abstract boolean supports(Class<?> clazz);
     @Override
     public void write(T t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException {

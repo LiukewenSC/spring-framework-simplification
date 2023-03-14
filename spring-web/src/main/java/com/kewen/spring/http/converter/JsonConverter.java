@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.kewen.spring.beans.BeanUtils;
 import com.kewen.spring.http.HttpOutputMessage;
 import com.kewen.spring.http.MediaType;
+import com.kewen.spring.http.server.ServletServerHttpRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -25,5 +27,13 @@ public class JsonConverter extends AbstractHttpMessageConverter<Object>{
         OutputStream outputStream = httpOutputMessage.getBody();
         byte[] bytes = JSONObject.toJSONBytes(o);
         outputStream.write(bytes);
+    }
+
+    @Override
+    public Object read(Class<?> clazz, ServletServerHttpRequest inputMessage) throws IOException {
+        InputStream body = inputMessage.getBody();
+        Object object = JSONObject.parseObject(body, clazz);
+        body.close();
+        return object;
     }
 }
