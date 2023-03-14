@@ -2,6 +2,10 @@ package com.kewen.spring.web.bind;
 
 import com.kewen.spring.core.MethodParameter;
 
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 /**
  * @descrpition 
  * @author kewen
@@ -17,6 +21,11 @@ public class WebDataBinder {
                 return Long.valueOf(((String) arg));
             } else if (parameterType == String.class){
                 return ((String) arg);
+            }
+        } else if (arg instanceof String[]){
+            String[] args = (String[]) arg;
+            if (parameterType==List.class){
+
             }
         }
         return arg;

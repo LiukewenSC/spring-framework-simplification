@@ -100,8 +100,8 @@ public class RequestResponseBodyMethodProcessor implements HandlerMethodReturnVa
             valueType = String.class;
             targetType = String.class;
         } else {
-            body =null;
-            valueType = null;
+            body =value;
+            valueType = returnType.getParameterType();
             targetType = null;
             //body = value;
             //valueType = (value != null ? value.getClass() : returnType.getParameterType());
@@ -128,13 +128,14 @@ public class RequestResponseBodyMethodProcessor implements HandlerMethodReturnVa
                 }
 
                 //可以写的话则写返回前的最后数据
-                if (canWrite){
-                    body = advice.beforeBodyWrite(
-                            body, returnType, selectedMediaType,
-                            (Class<? extends HttpMessageConverter<?>>) converter.getClass(),
-                            inputMessage, outputMessage
-                    );
+                if (!canWrite){
+                    continue;
                 }
+                body = advice.beforeBodyWrite(
+                        body, returnType, selectedMediaType,
+                        (Class<? extends HttpMessageConverter<?>>) converter.getClass(),
+                        inputMessage, outputMessage
+                );
                 //写数据操作
                 if (body != null) {
                     //检查文件扩展

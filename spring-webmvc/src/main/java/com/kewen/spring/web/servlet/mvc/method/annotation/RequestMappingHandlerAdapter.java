@@ -9,6 +9,7 @@ import com.kewen.spring.context.ApplicationContext;
 import com.kewen.spring.context.ApplicationContextAware;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.http.converter.HttpMessageConverter;
+import com.kewen.spring.http.converter.JsonConverter;
 import com.kewen.spring.http.converter.StringHttpMessageConverter;
 import com.kewen.spring.web.bind.support.WebDataBinderFactory;
 import com.kewen.spring.web.context.request.ServletWebRequest;
@@ -60,10 +61,15 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter, BeanFactory
 
         List<HandlerMethodArgumentResolver> resolvers = new ArrayList<>(30);
 
+        //处理@RequestParam
         resolvers.add(new RequestParamMethodArgumentResolver(beanFactory, false));
+        //处理@ModelAttribute
+        resolvers.add(new ServletModelAttributeMethodProcessor(false));
 
         //还有很多默认的，后续添加进来
-
+        //处理普通入参对象
+        resolvers.add(new ServletModelAttributeMethodProcessor(true));
+        //处理@RequestParam
         resolvers.add(new RequestParamMethodArgumentResolver(beanFactory, true));
         return resolvers;
     }
@@ -176,7 +182,7 @@ public class RequestMappingHandlerAdapter implements HandlerAdapter, BeanFactory
     }
 
     private List<HttpMessageConverter<?>> getDefaultMessageConverters() {
-        return Arrays.asList(new StringHttpMessageConverter());
+        return Arrays.asList(new StringHttpMessageConverter(),new JsonConverter());
     }
 
     private void initControllerAdviceCache() {

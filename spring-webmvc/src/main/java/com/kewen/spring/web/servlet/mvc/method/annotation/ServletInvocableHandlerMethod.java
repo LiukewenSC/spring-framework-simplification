@@ -28,7 +28,7 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
     /**
      * 参数解析器
      */
-    private HandlerMethodArgumentResolverComposite resolvers = new HandlerMethodArgumentResolverComposite();
+    private HandlerMethodArgumentResolverComposite resolvers;
 
     /**
      * 返回值解析器

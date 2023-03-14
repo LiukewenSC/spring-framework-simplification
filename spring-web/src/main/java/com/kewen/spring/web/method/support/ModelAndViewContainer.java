@@ -17,4 +17,8 @@ public class ModelAndViewContainer {
     public boolean isRequestHandled() {
         return this.requestHandled;
     }
+
+    public void setBinding(String name, boolean binding) {
+
+    }
 }
