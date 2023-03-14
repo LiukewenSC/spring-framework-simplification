@@ -93,6 +93,36 @@ spring框架学习目的使用
 ### spring-webmvc
     主要加载webmvc的9大组件
 
+#### 初始化流程
+    
+
+#### 请求调用流程
+    javax.servlet.HttpServlet#service()启动请求调用
+    FrameworkSerlvet#service()重写此方法正式进入框架调用，通过doService抽象方法提供给子类实现
+    DispatcherServlet#doService记录请求后调用doDispatch()正式进入MVC的调用环节
+    1、首先通过请求获取到映射器HandlerMapping，并组装成HandlerExecutionChain拦截器调用链
+    2、然后根据拦截器链的处理方法(一般为HandlerMethod或其容器中beanName)获取到处理器适配器HandlerAdapter
+    3、执行拦截器链的pre方法(拦截器链中的拦截器pre方法挨个执行)
+    4、执行请求方法，调起controller
+    5、执行拦截器的after方法(拦截器链中的拦截器post方法挨个执行)
+    6、处理异常等
+    7、finally中执行拦截器的complate方法
+    
+##### 获取请求映射器
+##### 获取适配器
+##### 执行请求方法
+    HandlerAdapter#handler()为执行方法，通常为实现类RequestMappingHandlerMapping。
+    RequestMappingHandlerMapping主要执行方法为invokeHandlerMethod()，得到ModelAndView
+    RequestMappingHandlerMapping#invokeHandlerMethod()构造一个ServletInvocableHandlerMethod执行器，并赋予初始值，此请求执行器将执行方法的全部过程
+    ServletInvocableHandlerMethod#invokeAndHandle()分两步执行方法+处理好返回值
+    ..invokeForRequest()中分为两步获取参数+执行方法
+    ....getMethodArgumentValues()获取参数
+    ....doInvoke()反射执行方法
+    ..returnValueHandlers.handleReturnValue()中分为两步获取参数+执行方法
+###### ServletInvocableHandlerMethod.getMethodArgumentValues() 参数解析
+    主要由参数解析器负责处理，所有参数中每一个参数均调用一次参数解析器集合resolvers并选取一个处理，得到参数
+    
+
 
 ## todo
     动态代理/切面逻辑
