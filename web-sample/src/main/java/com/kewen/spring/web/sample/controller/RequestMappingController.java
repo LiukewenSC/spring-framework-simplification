@@ -35,6 +35,9 @@ public class RequestMappingController {
     public HelloReq hello4(@RequestBody HelloReq req){
         return req;
     }
-
+    @RequestMapping("/error")
+    public HelloReq error(){
+        throw new RuntimeException("error test");
+    }
 
 }

@@ -14,7 +14,7 @@ import com.kewen.spring.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  * @since 2023-03-10
  */
 @Component
-public class ResultResponseBodyAdvance implements ResponseBodyAdvice<Object> {
+public class SampleResponseBodyAdvance implements ResponseBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         return true;

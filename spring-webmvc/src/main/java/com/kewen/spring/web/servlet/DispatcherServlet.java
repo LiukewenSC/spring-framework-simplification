@@ -7,6 +7,7 @@ import com.kewen.spring.context.ApplicationContext;
 import com.kewen.spring.core.io.ClassPathResource;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.ClassUtils;
+import com.kewen.spring.web.util.NestedServletException;
 
 
 import javax.servlet.ServletException;
@@ -212,46 +213,80 @@ public class DispatcherServlet extends FrameworkServlet {
 
     protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
         HandlerExecutionChain mappedHandler = null;
-        Exception ex = null;
+
+        ModelAndView mv = null;
+        Exception dispatchException = null;
         try {
-            mappedHandler = getHandler(request);
+            try {
+                mappedHandler = getHandler(request);
 
-            if (mappedHandler==null){
-                //直接返回了
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                return;
+                if (mappedHandler==null){
+                    //直接返回了
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+                HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+
+
+                //对于GET和HEAD请求，此处做了一次查询缓存，先不管
+
+
+                //执行拦截器前置处理，执行pre方法，未通过则结束
+                if (!mappedHandler.applyPreHandle(request, response)) {
+                    return;
+                }
+
+
+                //执行请求方法
+                mv = ha.handle(request, response, mappedHandler.getHandler());
+
+
+
+                //执行拦截器后置处理
+                mappedHandler.applyPostHandle(request, response, mv);
+
+
+
+
+            } catch (Exception e) {
+                dispatchException = e;
+            }catch (Throwable t) {
+                dispatchException = new NestedServletException("Handler dispatch failed", t);
             }
-            HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
-
-
-            //对于GET和HEAD请求，此处做了一次查询缓存，先不管
-
-
-            //执行拦截器前置处理，执行pre方法，未通过则结束
-            if (!mappedHandler.applyPreHandle(request, response)) {
-                return;
-            }
-
-
-            //执行请求方法
-            ModelAndView mv = ha.handle(request, response, mappedHandler.getHandler());
-
-
-
-            //执行拦截器后置处理
-            mappedHandler.applyPostHandle(request, response, mv);
-
-
-
-
-        } catch (Exception e){
-            ex=e;
-        }finally {
+            //处理结果，包括异常结果和正常结果，前后端分离实际上就只剩下异常处理了
+            processDispatchResult(request, response, mappedHandler, mv, dispatchException);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
             //简化处理，直接在finally中执行，原框架是分别在几个地方处理的，干嘛那么麻烦呢
-            mappedHandler.triggerAfterCompletion(request,response,ex);
+            mappedHandler.triggerAfterCompletion(request,response,dispatchException);
         }
 
     }
+
+    private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
+           HandlerExecutionChain mappedHandler, ModelAndView mv, Exception exception) throws Exception {
+
+        Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
+        mv = processHandlerException(request, response, handler, exception);
+
+    }
+
+    @Nullable
+    protected ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
+                                                   @Nullable Object handler, Exception ex) throws Exception {
+        ModelAndView exMv = null;
+        if (this.handlerExceptionResolvers != null) {
+            for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
+                exMv = resolver.resolveException(request, response, handler, ex);
+                if (exMv != null) {
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
     @Nullable
     protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
         if (this.handlerMappings != null) {

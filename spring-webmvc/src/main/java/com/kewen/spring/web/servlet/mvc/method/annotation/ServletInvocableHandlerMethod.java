@@ -112,6 +112,11 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
         Object[] args = new Object[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             MethodParameter parameter = parameters[i];
+            args[i] = findProvidedArgument(parameter, providedArgs);
+            if (args[i] != null) {
+                continue;
+            }
+
             if (!this.resolvers.supportsParameter(parameter)) {
                 throw new IllegalStateException("No suitable resolver");
             }
@@ -125,6 +130,18 @@ public class ServletInvocableHandlerMethod extends HandlerMethod {
         }
         return args;
 
+    }
+
+    @Nullable
+    protected static Object findProvidedArgument(MethodParameter parameter, @Nullable Object... providedArgs) {
+        if (providedArgs != null) {
+            for (Object providedArg : providedArgs) {
+                if (parameter.getParameterType().isInstance(providedArg)) {
+                    return providedArg;
+                }
+            }
+        }
+        return null;
     }
 
     /**

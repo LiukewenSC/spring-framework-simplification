@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
  * @since 2023-03-14
  */
 @Component
-public class RequestRequestBodyAdvice implements RequestBodyAdvice<Object> {
+public class SampleRequestBodyAdvice implements RequestBodyAdvice<Object> {
     @Override
     public boolean supports(MethodParameter methodParameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
