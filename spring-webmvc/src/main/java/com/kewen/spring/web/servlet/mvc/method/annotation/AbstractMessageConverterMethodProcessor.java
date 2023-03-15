@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @descrpition
+ * @descrpition 提供转换的公共方法，最终都调用到messageConverters进行处理
  * @author kewen
  * @since 2023-03-14
  */

@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
- * @descrpition param参数请求解析器
+ * @descrpition param参数请求解析器，解析@RequestParam注解对应的参数
  * @author kewen
  * @since 2023-03-09
  */
@@ -27,7 +27,7 @@ public class RequestParamMethodArgumentResolver extends AbstractNamedValueMethod
     @Nullable
     private final ConfigurableBeanFactory beanFactory;
     /**
-     * 参数解析器数组中有两个此对象，第一个在开始，不使用默认值，第二个使在结尾用默认值
+     * 参数解析器数组中有两个此对象，第一个在开始，不使用默认值，第二个使在结尾用默认值作为保底解析
      */
     private final boolean useDefaultResolution;
 

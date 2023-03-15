@@ -15,14 +15,15 @@ import com.kewen.spring.web.method.support.ModelAndViewContainer;
 import java.beans.PropertyDescriptor;
 
 /**
- * @descrpition
+ * @descrpition 解析一般的普通模型对象
+ *  此解析器不解析基本参数，基本参数使用 RequestParamMethodArgumentResolver
  * @author kewen
  * @since 2023-03-14
  */
 public class ServletModelAttributeMethodProcessor implements HandlerMethodArgumentResolver {
 
     /**
-     * 是否不需要注解
+     * 是否不需要注解，在ArgumentResolvers中包含两个处理器，一个是在前，此值为false，一个在后，此值为true，在后面的作为保底使用
      */
     private final boolean annotationNotRequired;
 
@@ -49,13 +50,10 @@ public class ServletModelAttributeMethodProcessor implements HandlerMethodArgume
             mavContainer.setBinding(name, ann.binding());
         }
 
-        //简化处理了，
+        //简化处理，解析普通对象的值，对象必须包含无参构造，否则报错
         // 原框架构造了 WebDataBinder ，并通过构造PropertyValue来处理加入数据，
         // 这里利用jdk的PropertyDescriptor 简单处理
-
-
         WebDataBinder binder = binderFactory.createBinder(webRequest, null, null);
-
         Class<?> parameterType = parameter.getParameterType();
         Object instance = parameterType.newInstance();
         BeanWrapperImpl beanWrapper = new BeanWrapperImpl(instance);

@@ -109,20 +109,45 @@ spring框架学习目的使用
     7、finally中执行拦截器的complate方法
     
 ##### 获取请求映射器
+    根据请求是否支持得到相应的映射器，
+    一般使用的映射器为：
+        RequestMappingHandlerMapping 将controller的方法封装成HandlerMethod，使得一个url对应一个HandlerMethod
 ##### 获取适配器
-##### 执行请求方法
-    HandlerAdapter#handler()为执行方法，通常为实现类RequestMappingHandlerMapping。
-    RequestMappingHandlerMapping主要执行方法为invokeHandlerMethod()，得到ModelAndView
-    RequestMappingHandlerMapping#invokeHandlerMethod()构造一个ServletInvocableHandlerMethod执行器，并赋予初始值，此请求执行器将执行方法的全部过程
-    ServletInvocableHandlerMethod#invokeAndHandle()分两步执行方法+处理好返回值
-    ..invokeForRequest()中分为两步获取参数+执行方法
-    ....getMethodArgumentValues()获取参数
-    ....doInvoke()反射执行方法
-    ..returnValueHandlers.handleReturnValue()中分为两步获取参数+执行方法
-###### ServletInvocableHandlerMethod.getMethodArgumentValues() 参数解析
-    主要由参数解析器负责处理，所有参数中每一个参数均调用一次参数解析器集合resolvers并选取一个处理，得到参数
-    
+    根据映射器的获取到对应的处理器
+    一般使用的处理器为：
+        RequestMappingHandlerAdaptor 执行解析处理
 
+##### 执行适配器方法
+    1、HandlerAdapter#handler()为执行方法，通常为实现类RequestMappingHandlerMapping。 RequestMappingHandlerMapping主要执行方法为invokeHandlerMethod()，得到ModelAndView
+    2、RequestMappingHandlerMapping#invokeHandlerMethod()构造一个ServletInvocableHandlerMethod执行器，并赋予初始值，此请求执行器将执行方法的全部过程
+    3、ServletInvocableHandlerMethod#invokeAndHandle()分两步执行方法+处理好返回值
+        ..invokeForRequest()中分为两步获取参数+执行方法
+        ....getMethodArgumentValues()获取参数
+        ....doInvoke()反射执行方法
+        ..returnValueHandlers.handleReturnValue()中分为两步获取参数+执行方法
+
+###### HandlerMethodArgumentResolver 参数解析
+    在 ServletInvocableHandlerMethod.getMethodArgumentValues() 中获取并调用
+    主要由参数解析器负责处理，所有参数中每一个参数均调用一次参数解析器集合resolvers并选取一个处理，得到参数数组  Object[] args
+    一般使用到的参数解析器有：
+        RequestParamMethodArgumentResolver 解析基本数据类型，加@RequestParam注解(或不加，不加涉及到asm解析参数暂未实现) 如 String类型，Integer类型等
+        ServletModelAttributeMethodProcessor 解析对象类型(非基本类型)，从param中解析
+        RequestResponseBodyMethodProcessor 解析@RequestBody对应的对象，从InputStream中获取流对象并解析，只能解析一次
+            此对象中维护了 HttpMessageConverter 列表用于做参数解析的匹配器，当其中一个converter匹配解析时则处理数据，如jackson的处理器（这儿采用fastjson实现）
+            RequestBodyAdvice请求增强也在这里实现前置后置增强
+            
+
+###### HandlerMethodReturnValueHandler 返回结果增强
+    在ServletInvocableHandlerMethod#invokeAndHandle()方法执行完controller的处理后再使用returnValueHandler处理返回值之后的增强
+    一般使用到的返回增强处理器有：
+        RequestResponseBodyMethodProcessor 处理@ResponseBody对应的数据，将返回对象通过写入OutputStream中
+            此对象中维护了 HttpMessageConverter 列表用于做写数据流的匹配器，当其中一个converter匹配时处理，如Jackson
+            ResponseBodyAdvice返回增强也是在此处实现的
+
+##### ModelAndView 处理
+    暂时不处理此情况，只有在前后端不分离的情况下使用，暂且不做研究了
+
+##### 异常处理
 
 ## todo
     动态代理/切面逻辑
@@ -133,6 +158,7 @@ spring框架学习目的使用
     跨模块的classpath:META-INF/spring.handlers解析
     spring容器刷新过后springmvc又刷新一次，之后再看看咋弄
     springmvc的初始化应该从上下文监听器执行的，目前监听器功能还未实现，暂时未做
+    @PathVariable解析未实现
 
 ## 其它
 

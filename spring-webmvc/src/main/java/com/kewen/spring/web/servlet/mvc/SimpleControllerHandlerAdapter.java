@@ -7,8 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author kewen
  * @descrpition
+ * @author kewen
  * @since 2023-03-06
  */
 public class SimpleControllerHandlerAdapter implements HandlerAdapter {
