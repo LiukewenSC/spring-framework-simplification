@@ -30,7 +30,7 @@ public class SampleControllerAdvice {
     public Object exception(Exception t){
         System.out.println(t);
         HashMap<String, Object> map = new HashMap<>();
-        map.put("success",true);
+        map.put("success",false);
         map.put("message",t.getMessage());
         return map;
     }

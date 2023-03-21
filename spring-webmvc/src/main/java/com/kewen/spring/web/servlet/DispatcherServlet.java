@@ -276,6 +276,11 @@ public class DispatcherServlet extends FrameworkServlet {
     protected ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
                                                    @Nullable Object handler, Exception ex) throws Exception {
         ModelAndView exMv = null;
+
+        //没有异常则直接返回了
+        if (ex == null){
+            return exMv;
+        }
         if (this.handlerExceptionResolvers != null) {
             for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
                 exMv = resolver.resolveException(request, response, handler, ex);
@@ -284,7 +289,7 @@ public class DispatcherServlet extends FrameworkServlet {
                 }
             }
         }
-        return null;
+        return exMv;
     }
 
     @Nullable

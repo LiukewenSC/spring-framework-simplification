@@ -105,7 +105,8 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
         Class<?> handlerType = null;
 
-        //如果传入有HandlerMethod，类对应有@ExceptionHandler方法，则直接先解析一次
+        //如果传入HandlerMethod(即controller封装)对应有@ExceptionHandler方法的话，则直接先解析一次
+        //即优先匹配类中有的处理器，没有才使用全局的处理器
         if (handlerMethod !=null){
             handlerType = handlerMethod.getBean().getClass();
             ExceptionHandlerMethodResolver resolver= new ExceptionHandlerMethodResolver(handlerType);
@@ -115,7 +116,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
             }
         }
 
-        //未找到则从@ControllerAdvice对应的类中加载解析器
+        //未找到则默认解析，从@ControllerAdvice对应的类中加载解析器
         for (Map.Entry<ControllerAdviceBean, ExceptionHandlerMethodResolver> entry : this.exceptionHandlerAdviceCache.entrySet()) {
             ControllerAdviceBean advice = entry.getKey();
             if (advice.isApplicableToBeanType(handlerType)) {

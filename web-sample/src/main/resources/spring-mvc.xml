@@ -12,6 +12,12 @@
 
     <context:component-scan base-package="com.kewen"/>
 
+    <!--RequestMappingHandler 默认会加载4个-->
+    <!--RequestMappingAdaptor默认也会加载-->
+    <!--Resolver默认也会加载-->
+    <!--拦截器直接从容器中获取了，方便，就不实现在此处的配置了-->
+
+
     <!--配置处理器映射器-->
     <!--<bean class="com.kewen.spring.web.servlet.handler.BeanNameUrlHandlerMapping"/>-->
     <!--配置处理器适配器-->

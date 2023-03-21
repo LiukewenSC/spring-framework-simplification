@@ -31,8 +31,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * @descrpition 内部维护了controller方法的封装HandlerMethod对应的url请求连接，并在初始化组件阶段做好初始化的映射
  * @author kewen
- * @descrpition
  * @since 2023-03-06
  */
 public class RequestMappingHandlerMapping extends AbstractHandlerMapping implements ApplicationContextAware,InitializingBean {
