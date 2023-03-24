@@ -138,7 +138,7 @@ public class PostProcessorRegistrationDelegate {
             beanFactory.addBeanPostProcessor(beanPostProcessor);
         }
 
-        //这里又注入一次，岂不是两次了，而且注入的东西都一样
+        //这里又注入上下文应用监听器，用于监听 非BeanPostProcessor的bean的创建
         beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext));
 
     }

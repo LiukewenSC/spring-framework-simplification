@@ -3,6 +3,10 @@ package com.kewen.spring.web.context;
 import com.kewen.spring.beans.BeanUtils;
 import com.kewen.spring.context.ApplicationContext;
 import com.kewen.spring.context.ApplicationContextInitializer;
+import com.kewen.spring.context.ApplicationEvent;
+import com.kewen.spring.context.ApplicationListener;
+import com.kewen.spring.context.event.ContextRefreshedEvent;
+import com.kewen.spring.context.event.SourceFilteringListener;
 import com.kewen.spring.context.exception.ApplicationContextException;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.ClassUtils;
@@ -68,9 +72,26 @@ public class ContextLoaderListener implements ServletContextListener {
         //设置初始化器
         customizeContext(sc, wac);
 
+        //todo 这里模拟一个刷新上下文监听器，用来完善监听器流程
+        wac.addApplicationListener(new SourceFilteringListener(wac,new ContextRefreshListener()));
+
         //刷新
         wac.refresh();
 
+    }
+
+    /**
+     * 上下文刷新监听器，其实spring自带流程没有这个，SpringMVC中在FrameworkServlet中有此类名的监听器
+     * 此处为了模拟监听器流程而设下的，同this.configureAndRefreshWebApplicationContext()方法中的
+     *  wac.addApplicationListener(new SourceFilteringListener(wac,new ContextRefreshListener())) 呼应
+     */
+    public static class ContextRefreshListener implements ApplicationListener<ContextRefreshedEvent> {
+
+        @Override
+        public void onApplicationEvent(ContextRefreshedEvent event) {
+            ApplicationContext applicationContext = event.getApplicationContext();
+            System.out.println(applicationContext);
+        }
     }
 
     private void customizeContext(ServletContext sc, WebApplicationContext wac) {

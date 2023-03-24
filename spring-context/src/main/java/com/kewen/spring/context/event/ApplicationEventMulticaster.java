@@ -2,6 +2,7 @@ package com.kewen.spring.context.event;
 
 import com.kewen.spring.context.ApplicationEvent;
 import com.kewen.spring.context.ApplicationListener;
+import com.kewen.spring.core.ResolvableType;
 
 /**
  * @descrpition 事件控制器
@@ -13,4 +14,5 @@ public interface ApplicationEventMulticaster {
     void addApplicationListenerBean(String beanName);
 
     void multicastEvent(ApplicationEvent event);
+    void multicastEvent(ApplicationEvent event, ResolvableType resolvableType);
 }

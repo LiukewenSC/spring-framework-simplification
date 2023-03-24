@@ -33,6 +33,12 @@ public interface ConfigurableApplicationContext extends ApplicationContext {
 
     void addBeanFactoryPostProcessor(BeanFactoryPostProcessor postProcessor);
 
+    /**
+     * 添加监听器
+     * @param listener
+     */
+    void addApplicationListener(ApplicationListener<?> listener);
+
     void refresh() ;
 
     ConfigurableListableBeanFactory getBeanFactory() throws IllegalStateException;
