@@ -6,6 +6,7 @@ import com.kewen.spring.context.ApplicationContextInitializer;
 import com.kewen.spring.context.ApplicationListener;
 import com.kewen.spring.context.ConfigurableApplicationContext;
 import com.kewen.spring.context.event.ContextRefreshedEvent;
+import com.kewen.spring.context.event.SourceFilteringListener;
 import com.kewen.spring.context.exception.ApplicationContextException;
 import com.kewen.spring.core.lang.Nullable;
 import com.kewen.spring.core.util.ClassUtils;
@@ -90,7 +91,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
         }
 
         //刷新，子类DespatchServlet实现
-        //todo 其实不是从这里刷新的，有一个监听器监听spring容器的刷新事件调起，此处是没有刷新的话再刷新一次，刷新过就不刷新了
+        //其实不是从这里刷新的，ContextRefreshListener监听器监听spring容器的刷新事件调起，此处是没有刷新的话再刷新一次，刷新过就不刷新了
         if (!refreshEventReceived){
             //主要用于上下文不支持刷新(无刷新监听)或者已经刷新过了
             onRefresh(wac);
@@ -131,8 +132,8 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
         //原MVC框架是组装成PropertyValue并从获取的。此处简化与spring获取的方式保持一致，简单
         wac.setConfigLocation(getServletConfig().getInitParameter("contextConfigLocation"));
 
-        // 这个干嘛的，先不管
-        // wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
+        //ContextRefreshListener上下文初始化完成刷新器，预埋此监听器在上下文刷新完成后初始化9大组件
+        wac.addApplicationListener(new SourceFilteringListener(wac, new ContextRefreshListener()));
 
         //钩子函数，可扩展
         postProcessWebApplicationContext(wac);
@@ -259,4 +260,11 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
      */
     protected abstract void doService(HttpServletRequest request, HttpServletResponse response)
             throws Exception;
+    private class ContextRefreshListener implements ApplicationListener<ContextRefreshedEvent> {
+
+        @Override
+        public void onApplicationEvent(ContextRefreshedEvent event) {
+            FrameworkServlet.this.onApplicationEvent(event);
+        }
+    }
 }
