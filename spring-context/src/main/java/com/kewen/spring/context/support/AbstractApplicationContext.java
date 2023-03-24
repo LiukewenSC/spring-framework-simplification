@@ -53,7 +53,10 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
 
     @Nullable
     protected volatile DefaultListableBeanFactory beanFactory;
-    /** Statically specified listeners. */
+
+    /**
+     * 监听器集合，通常在初始化WebApplicationContext时通过addApplicationListener添加
+     */
     private final Set<ApplicationListener<?>> applicationListeners = new LinkedHashSet<>();
     @Nullable
     private ApplicationEventMulticaster applicationEventMulticaster;
@@ -106,6 +109,11 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
         return applicationEventMulticaster;
     }
 
+    @Override
+    public void addApplicationListener(ApplicationListener<?> listener) {
+        applicationListeners.add(listener);
+    }
+
     public Set<ApplicationListener<?>> getApplicationListeners() {
         return applicationListeners;
     }
@@ -135,7 +143,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
                 //处理BeanFactoryPostProcessor和BeanDefinitionRegisterPostProcessor
                 invokeBeanFactoryPostProcessors(beanFactory);
 
-                //注册
+                //注册 BeanPostProcessors
                 registerBeanPostProcessors(beanFactory);
 
                 //初始化消息源
@@ -147,7 +155,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
                 //刷新特殊的类，先不管
                 onRefresh();
 
-                //注册监听器
+                //注册监听器，将监听器注册在事件控制器中
                 registerListeners();
 
                 //完成bean工厂初始化 ，此处初始化单例bean
@@ -233,7 +241,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
 
     private void registerListeners() {
 
-        //注册监听器
+        //注册系统自带的监听器
         for (ApplicationListener<?> listener : getApplicationListeners()) {
             applicationEventMulticaster.addApplicationListener(listener);
         }
@@ -277,7 +285,7 @@ public abstract class AbstractApplicationContext implements ConfigurableApplicat
         //添加上下文处理器， 主要用来处理 ApplicationContextAware
         beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
-        //todo 添加上下文监听器，做啥来着
+        //添加上下文应用监听器，监听后续BeanPostProcessor的创建
         beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
 
     }
